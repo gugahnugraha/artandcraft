@@ -1,26 +1,101 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 191 15% 98%;      /* Very soft warm cyan-gray tint background */
+  --foreground: 191 25% 10%;      /* Deep maritime slate */
+  
+  --card: 191 15% 98%;
+  --card-foreground: 191 25% 10%;
+  
+  --popover: 191 15% 98%;
+  --popover-foreground: 191 25% 10%;
+  
+  --primary: 191 71% 52%;         /* Selat Bali Turquoise / Tosca (#2cbbdb) */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 46 65% 52%;       /* Kebaya Gold / Brass Accent (complements turquoise beautifully) */
+  --secondary-foreground: 191 25% 10%;
+  
+  --muted: 191 10% 90%;
+  --muted-foreground: 191 15% 40%;
+  
+  --accent: 191 71% 95%;          /* Soft Turquoise Accent */
+  --accent-foreground: 191 71% 25%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 191 15% 98%;
+  
+  --border: 191 10% 85%;
+  --input: 191 10% 85%;
+  --ring: 191 71% 52%;
+  
+  --radius: 0.75rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --background: 191 30% 3%;       /* Deep Oceanic Abyss */
+  --foreground: 191 15% 95%;
+  
+  --card: 191 30% 5%;
+  --card-foreground: 191 15% 95%;
+  
+  --popover: 191 30% 5%;
+  --popover-foreground: 191 15% 95%;
+  
+  --primary: 191 71% 52%;         /* Selat Bali Turquoise / Tosca (#2cbbdb) */
+  --primary-foreground: 191 30% 3%;
+  
+  --secondary: 46 65% 52%;
+  --secondary-foreground: 191 30% 3%;
+  
+  --muted: 191 15% 12%;
+  --muted-foreground: 191 10% 70%;
+  
+  --accent: 191 71% 15%;          /* Dark Turquoise Accent */
+  --accent-foreground: 191 71% 80%;
+  
+  --destructive: 0 62% 40%;
+  --destructive-foreground: 191 15% 95%;
+  
+  --border: 191 15% 12%;
+  --input: 191 15% 12%;
+  --ring: 191 71% 52%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
