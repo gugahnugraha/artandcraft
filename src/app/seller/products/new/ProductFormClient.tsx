@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { productSchema, ProductInput } from "@/features/products/schemas";
+import { productSchema, ProductInput, ProductStatus } from "@/features/products/schemas";
 import { createProduct } from "@/features/products/actions/create-product";
 import {
   FileText,
@@ -20,7 +20,6 @@ import {
   Plus,
   Upload,
 } from "lucide-react";
-import { ProductStatus } from "@prisma/client";
 
 interface Subcategory {
   id: string;
