@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Plus, LayoutDashboard, ShoppingBag, Store } from "lucide-react";
 import ProductListClient from "./ProductListClient";
 import { redirect } from "next/navigation";
-import { ProductStatus } from "@/features/products/schemas";
+import { ProductStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,6 @@ export default async function SellerProductsPage() {
     ...p,
     price: Number(p.price),
     discount: Number(p.discount),
-    status: p.status as ProductStatus,
   }));
 
   return (

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { deleteProduct } from "@/features/products/actions/delete-product";
 import { Search, Edit2, Trash2, ShieldAlert, Sparkles, Filter, Loader2, AlertCircle } from "lucide-react";
-import { ProductStatus } from "@/features/products/schemas";
+import { ProductStatus } from "@prisma/client";
 
 interface SerializedProduct {
   id: string;

@@ -1,11 +1,5 @@
 import { z } from "zod";
-
-export enum ProductStatus {
-  DRAFT = "DRAFT",
-  ACTIVE = "ACTIVE",
-  ARCHIVED = "ARCHIVED",
-  OUT_OF_STOCK = "OUT_OF_STOCK",
-}
+import { ProductStatus } from "@prisma/client";
 
 export const productSchema = z.object({
   title: z
