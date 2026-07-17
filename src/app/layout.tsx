@@ -1,24 +1,8 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layouts/Header";
 import Footer from "@/components/layouts/Footer";
-
 import AuthProvider from "@/components/providers/SessionProvider";
-
-const fontSans = Plus_Jakarta_Sans({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const fontSerif = Cormorant_Garamond({
-  variable: "--font-serif",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "ArtAndCraft.id | Indonesian Handmade, Local Artisans & UMKM",
@@ -40,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${fontSans.variable} ${fontSerif.variable} h-full antialiased`}>
+    <html lang="id" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-200">
         <AuthProvider>
           <Header />

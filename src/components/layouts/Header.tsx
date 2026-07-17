@@ -13,6 +13,15 @@ export default function Header() {
     signOut({ callbackUrl: "/" });
   };
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -30,23 +39,24 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <Link href="#" className="hover:text-foreground transition-colors">Galeri</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Kategori</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Pengrajin</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Tentang Kami</Link>
+            <Link href="/search" className="hover:text-foreground transition-colors">Galeri</Link>
+            <Link href="/search?category=batik" className="hover:text-foreground transition-colors">Kategori</Link>
+            <Link href="/search" className="hover:text-foreground transition-colors">Pengrajin</Link>
           </nav>
 
           {/* Search Bar */}
-          <div className="hidden sm:flex max-w-sm flex-1 items-center relative">
+          <form onSubmit={handleSearch} className="hidden sm:flex max-w-sm flex-1 items-center relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <Search className="h-4 w-4 text-muted-foreground" />
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari kain batik, macrame, kerajinan kayu..."
               className="w-full rounded-full border border-border bg-card py-2 pl-9 pr-4 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all duration-200"
             />
-          </div>
+          </form>
 
           {/* Actions */}
           <div className="flex items-center gap-2 sm:gap-4">
