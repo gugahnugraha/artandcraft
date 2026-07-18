@@ -11,7 +11,7 @@ declare global {
   }
 }
 import { useRouter } from "next/navigation";
-import { CheckCircle2, CreditCard, MapPin, Truck, ShieldCheck, Loader2 } from "lucide-react";
+import { CheckCircle2, CreditCard, MapPin, Truck, ShieldCheck, Loader2, Tag } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CheckoutPage() {

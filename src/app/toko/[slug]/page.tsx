@@ -1,15 +1,27 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { notFound } from "next/navigation";
-import { Star, MapPin, Heart, ShoppingBag, ShieldCheck, Mail, Database } from "lucide-react";
+import {
+  Star,
+  MapPin,
+  ShieldCheck,
+  ShoppingBag,
+  Database,
+  Users,
+  Package,
+  Heart,
+  CheckCircle2,
+} from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import StoreFollowButton from "./StoreFollowButton";
+import StoreTabs from "./StoreTabs";
+import ProductCard from "@/components/ui/ProductCard";
 
 const BASE_URL = process.env.NEXTAUTH_URL || "https://artandcraft.id";
 
 interface PageProps {
-  params: Promise<{
-    slug: string;
-  }>;
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -21,10 +33,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     if (!seller) return { title: "Toko Tidak Ditemukan | ArtAndCraft.id" };
     return {
       title: `${seller.storeName} | Toko Kerajinan di ArtAndCraft.id`,
-      description: seller.storeDescription?.slice(0, 160) || `Temukan produk kerajinan tangan otentik dari ${seller.storeName} di ArtAndCraft.id.`,
+      description:
+        seller.storeDescription?.slice(0, 160) ||
+        `Temukan produk kerajinan tangan otentik dari ${seller.storeName} di ArtAndCraft.id.`,
       openGraph: {
         title: `${seller.storeName} | ArtAndCraft.id`,
-        description: seller.storeDescription?.slice(0, 160) || `Pengrajin UMKM lokal: ${seller.storeName}`,
+        description:
+          seller.storeDescription?.slice(0, 160) ||
+          `Pengrajin UMKM lokal: ${seller.storeName}`,
         images: seller.storeBanner ? [{ url: seller.storeBanner }] : [],
         type: "website",
         url: `${BASE_URL}/toko/${seller.storeSlug}`,
@@ -40,251 +56,263 @@ export const dynamic = "force-dynamic";
 
 export default async function StorefrontPage({ params }: PageProps) {
   const { slug } = await params;
-  let seller = null;
+  const session = await auth();
+
+  let seller: any = null;
   let products: any[] = [];
+  let reviews: any[] = [];
+  let isFollowing = false;
   let databaseOffline = false;
 
   try {
-    // 1. Fetch the seller profile by storeSlug
     seller = await prisma.sellerProfile.findUnique({
       where: { storeSlug: slug.toLowerCase() },
       include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
+        user: { select: { name: true, email: true } },
+        followers: session?.user?.id
+          ? { where: { userId: session.user.id } }
+          : false,
       },
     });
 
-    if (seller) {
-      // 2. Fetch all active products for this seller
-      products = await prisma.product.findMany({
-        where: {
-          sellerId: seller.id,
-          status: "ACTIVE",
-        },
-        include: {
-          category: true,
-        },
-        orderBy: { createdAt: "desc" },
-      });
+    if (!seller) notFound();
+
+    // Fetch active products with avg rating
+    const rawProducts = await prisma.product.findMany({
+      where: { sellerId: seller.id, status: "ACTIVE" },
+      include: {
+        category: true,
+        reviews: { select: { rating: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    products = rawProducts.map((p: any) => {
+      const ratingSum = p.reviews.reduce((s: number, r: any) => s + r.rating, 0);
+      return {
+        id: p.id,
+        title: p.title,
+        sellerName: seller.storeName,
+        price: Number(p.price),
+        discount: Number(p.discount),
+        slug: p.slug,
+        photos: p.photos,
+        categoryName: p.category.name,
+        rating: p.reviews.length > 0 ? ratingSum / p.reviews.length : 0,
+        reviewsCount: p.reviews.length,
+      };
+    });
+
+    // Fetch latest store reviews (from product reviews belonging to this seller's products)
+    reviews = await prisma.review.findMany({
+      where: {
+        product: { sellerId: seller.id },
+      },
+      include: {
+        user: { select: { name: true, image: true } },
+        product: { select: { title: true, slug: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+    });
+
+    // Recalculate store rating from all reviews
+    if (reviews.length > 0) {
+      const avgRating =
+        reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length;
+      // Update storeRating in DB if significantly different
+      if (Math.abs(seller.storeRating - avgRating) > 0.05) {
+        await prisma.sellerProfile.update({
+          where: { id: seller.id },
+          data: { storeRating: avgRating },
+        });
+        seller.storeRating = avgRating;
+      }
+    }
+
+    // Check if current user follows this store
+    if (session?.user?.id && seller.followers) {
+      isFollowing = (seller.followers as any[]).length > 0;
     }
   } catch (error: any) {
-    const isConnRefused = error?.message?.includes("ECONNREFUSED") || error?.code === "ECONNREFUSED";
+    const isConnRefused =
+      error?.message?.includes("ECONNREFUSED") || error?.code === "ECONNREFUSED";
     if (isConnRefused) {
-      console.warn(`⚠️ Database offline. Menggunakan mode fallback untuk toko: /toko/${slug}`);
-    } else {
+      console.warn(`⚠️ Database offline: /toko/${slug}`);
+    } else if (error.message !== "NEXT_NOT_FOUND") {
       console.error("Gagal memuat profil toko:", error.message || error);
     }
-    databaseOffline = true;
+    if (error.message !== "NEXT_NOT_FOUND") databaseOffline = true;
   }
 
-  // If the database is online but the seller profile was not found, return 404
-  if (!databaseOffline && !seller) {
-    notFound();
-  }
-
-  // Render a friendly error screen if the database connection failed
   if (databaseOffline) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto">
         <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-6">
           <Database className="h-6 w-6" />
         </div>
-        <h2 className="font-serif text-2xl font-bold text-foreground mb-3">Database Sedang Offline</h2>
+        <h2 className="font-serif text-2xl font-bold text-foreground mb-3">
+          Database Sedang Offline
+        </h2>
         <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-          Koneksi ke server database kami sedang terputus. Silakan hubungkan database Anda di file <code className="font-semibold text-primary">.env</code> dan jalankan migrasi untuk melanjutkan.
+          Koneksi ke server database kami sedang terputus.
         </p>
-        <Link href="/" className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/95 transition-colors">
+        <Link
+          href="/"
+          className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/95 transition-colors"
+        >
           Kembali ke Beranda
         </Link>
       </div>
     );
   }
 
+  const avgRating = seller.storeRating ?? 0;
+
   return (
     <div className="flex-1 bg-background">
-      
-      {/* Hero Store Banner */}
-      <div className="w-full h-48 md:h-64 bg-gradient-to-r from-primary/30 to-secondary/20 relative flex items-end">
-        {seller!.storeBanner && (
+      {/* ── Store Hero Banner ── */}
+      <div className="w-full h-52 md:h-72 bg-gradient-to-r from-primary/40 via-primary/20 to-secondary/30 relative">
+        {seller.storeBanner && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={seller!.storeBanner!}
-            alt={seller!.storeName}
-            className="object-cover w-full h-full absolute inset-0 -z-10"
+            src={seller.storeBanner}
+            alt={seller.storeName}
+            className="object-cover w-full h-full absolute inset-0"
           />
         )}
-        
-        {/* Shadow Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      </div>
 
-        {/* Floating Identity card */}
-        <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 pb-6 relative z-10 flex flex-col sm:flex-row gap-6 items-center sm:items-end">
-          
+      {/* ── Store Identity ── */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative -mt-14 flex flex-col sm:flex-row sm:items-end gap-5 pb-6 border-b border-border">
           {/* Logo */}
-          <div className="h-24 w-24 rounded-full border-4 border-background bg-card text-primary font-serif font-bold text-4xl flex items-center justify-center shadow-lg shrink-0 overflow-hidden">
-            {seller!.storeLogo ? (
+          <div className="h-28 w-28 rounded-2xl border-4 border-background bg-card text-primary font-serif font-bold text-5xl flex items-center justify-center shadow-xl shrink-0 overflow-hidden">
+            {seller.storeLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={seller!.storeLogo} alt={seller!.storeName} className="object-cover w-full h-full" />
+              <img
+                src={seller.storeLogo}
+                alt={seller.storeName}
+                className="object-cover w-full h-full"
+              />
             ) : (
-              seller!.storeName.charAt(0)
+              seller.storeName.charAt(0)
             )}
           </div>
 
-          {/* Details */}
-          <div className="text-center sm:text-left flex-1 space-y-2">
-            <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-              {seller!.storeName}
-            </h1>
-            
-            <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-xs font-semibold text-muted-foreground">
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h1 className="font-serif text-3xl font-bold text-foreground tracking-tight">
+                {seller.storeName}
+              </h1>
+              {seller.isVerified && (
+                <span className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                  <CheckCircle2 className="h-3 w-3" /> Terverifikasi
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-4 text-xs font-semibold text-muted-foreground mt-2">
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5 text-primary" />
                 Indonesia
               </span>
-              <span className="flex items-center gap-1 text-amber-500">
-                <Star className="h-3.5 w-3.5 fill-amber-500" />
-                {seller!.storeRating.toFixed(1)} Rating
+              {avgRating > 0 && (
+                <span className="flex items-center gap-1 text-amber-500">
+                  <Star className="h-3.5 w-3.5 fill-amber-500" />
+                  {avgRating.toFixed(1)} Rating
+                  <span className="text-muted-foreground">({reviews.length} ulasan)</span>
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <Users className="h-3.5 w-3.5 text-primary" />
+                <strong>{seller.followersCount}</strong> Pengikut
               </span>
-              <span>
-                <strong>{seller!.followersCount}</strong> Pengikut
+              <span className="flex items-center gap-1">
+                <Package className="h-3.5 w-3.5 text-primary" />
+                <strong>{products.length}</strong> Produk
               </span>
             </div>
           </div>
 
-          {/* Contact / Action buttons */}
-          <div className="flex gap-3">
-            <button className="flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground hover:bg-accent transition-colors">
-              <Heart className="h-3.5 w-3.5 text-primary" />
-              <span>Ikuti Toko</span>
-            </button>
-            <button className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/95 transition-colors">
-              <Mail className="h-3.5 w-3.5" />
-              <span>Hubungi</span>
-            </button>
+          {/* Actions */}
+          <div className="flex gap-2 shrink-0">
+            <StoreFollowButton
+              storeId={seller.id}
+              storeSlug={seller.storeSlug}
+              initialFollowing={isFollowing}
+              isLoggedIn={!!session?.user}
+            />
           </div>
-
         </div>
-      </div>
 
-      {/* Main Grid content */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left profile info */}
-          <div className="lg:col-span-4 bg-card border border-border/50 rounded-2xl p-6 shadow-sm space-y-6">
-            <div>
-              <h3 className="font-serif font-bold text-lg text-foreground mb-3">Tentang Toko</h3>
+        {/* ── Main Content ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 py-8">
+          {/* Left sidebar */}
+          <aside className="lg:col-span-3 space-y-5">
+            {/* About */}
+            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                Tentang Toko
+              </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {seller!.storeDescription || "Pengrajin ini belum mengunggah deskripsi atau cerita tokonya."}
+                {seller.storeDescription ||
+                  "Pengrajin ini belum mengunggah deskripsi atau cerita tokonya."}
               </p>
             </div>
 
-            <div className="border-t border-border/40 pt-4 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-medium text-foreground">
-                <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-                <span>Pengrajin UMKM Terverifikasi</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <span className="shrink-0 font-bold text-foreground">Pemilik:</span>
-                <span className="truncate">{seller!.user.name}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right products grid */}
-          <div className="lg:col-span-8 space-y-8">
-            <div>
-              <h2 className="font-serif text-2xl font-bold text-foreground mb-1">
-                Koleksi Kerajinan Toko ({products.length})
-              </h2>
-              <p className="text-xs text-muted-foreground">Karya orisinil langsung dari bengkel kerja pengrajin.</p>
-            </div>
-
-            {products.length === 0 ? (
-              <div className="text-center border border-dashed border-border rounded-2xl py-16 bg-card">
-                <ShoppingBag className="h-12 w-12 text-primary/30 mx-auto mb-4" />
-                <h4 className="font-serif text-lg font-bold text-foreground mb-1">Koleksi Masih Kosong</h4>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Pengrajin ini sedang mempersiapkan karya-karya baru untuk diluncurkan.
+            {/* Store Policy */}
+            {seller.storePolicy && (
+              <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  Kebijakan Toko
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {seller.storePolicy}
                 </p>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((prod) => {
-                  const hasDiscount = Number(prod.discount) > 0;
-                  const priceNum = Number(prod.price);
-                  const discountNum = Number(prod.discount);
-                  const discountedPrice = priceNum * (1 - discountNum / 100);
-
-                  return (
-                    <div
-                      key={prod.id}
-                      className="group flex flex-col rounded-xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
-                    >
-                      {/* Image placeholder */}
-                      <div className="aspect-square w-full bg-primary/5 relative flex items-center justify-center overflow-hidden">
-                        {prod.photos && prod.photos[0] ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={prod.photos[0]}
-                            alt={prod.title}
-                            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <span className="text-2xl font-serif text-foreground/10 group-hover:scale-105 transition-transform duration-300">
-                            {prod.title.split(" ").slice(-1)[0]}
-                          </span>
-                        )}
-
-                        {hasDiscount && (
-                          <span className="absolute top-2 left-2 bg-secondary text-secondary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
-                            -{discountNum}%
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Info Details */}
-                      <div className="p-4 flex-1 flex flex-col">
-                        <span className="text-[9px] font-bold text-primary tracking-wider uppercase mb-1">
-                          {prod.category.name}
-                        </span>
-                        
-                        <h3 className="font-semibold text-foreground text-xs line-clamp-2 min-h-[36px] mb-2 group-hover:text-primary transition-colors">
-                          <Link href={`/produk/${prod.slug}`}>{prod.title}</Link>
-                        </h3>
-
-                        <div className="mt-auto pt-3 border-t border-border/40 flex justify-between items-end">
-                          <div>
-                            {hasDiscount && (
-                              <span className="block text-[10px] text-muted-foreground line-through">
-                                Rp {priceNum.toLocaleString("id-ID")}
-                              </span>
-                            )}
-                            <span className="text-sm font-bold text-foreground">
-                              Rp {(hasDiscount ? discountedPrice : priceNum).toLocaleString("id-ID")}
-                            </span>
-                          </div>
-                          
-                          <span className="text-[10px] text-muted-foreground">
-                            Stok: {prod.stock}
-                          </span>
-                        </div>
-                      </div>
-
-                    </div>
-                  );
-                })}
-              </div>
             )}
-          </div>
 
+            {/* Stats */}
+            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+              <h3 className="font-semibold text-foreground mb-3 text-sm">Statistik</h3>
+              <div className="space-y-2.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total Produk</span>
+                  <span className="font-bold">{products.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total Ulasan</span>
+                  <span className="font-bold">{reviews.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Pengikut</span>
+                  <span className="font-bold">{seller.followersCount}</span>
+                </div>
+                {avgRating > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Rating</span>
+                    <span className="font-bold flex items-center gap-1 text-amber-500">
+                      <Star className="h-3.5 w-3.5 fill-amber-500" />
+                      {avgRating.toFixed(1)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </aside>
+
+          {/* Right tabs */}
+          <div className="lg:col-span-9">
+            <StoreTabs products={products} reviews={reviews} storeName={seller.storeName} />
+          </div>
         </div>
       </div>
-
     </div>
   );
 }
