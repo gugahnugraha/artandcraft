@@ -2,7 +2,14 @@
 
 import { useCart } from "@/store/cart";
 import { useState, useEffect } from "react";
+import Script from "next/script";
 import Link from "next/link";
+
+declare global {
+  interface Window {
+    snap: any;
+  }
+}
 import { useRouter } from "next/navigation";
 import { CheckCircle2, CreditCard, MapPin, Truck, ShieldCheck, Loader2 } from "lucide-react";
 
@@ -54,18 +61,42 @@ export default function CheckoutPage() {
       const data = await res.json();
       
       if (res.ok) {
-        setIsSuccess(true);
-        clearCart();
+        if (data.token) {
+          // Trigger Midtrans Snap
+          window.snap.pay(data.token, {
+            onSuccess: function (result: any) {
+              setIsSuccess(true);
+              clearCart();
+            },
+            onPending: function (result: any) {
+              setIsSuccess(true);
+              clearCart();
+            },
+            onError: function (result: any) {
+              setErrorMessage("Pembayaran gagal. Silakan coba lagi.");
+              setIsProcessing(false);
+            },
+            onClose: function () {
+              setErrorMessage("Anda menutup popup pembayaran sebelum menyelesaikannya.");
+              setIsProcessing(false);
+            }
+          });
+        } else {
+          // Fallback if no token (e.g. testing mode)
+          setIsSuccess(true);
+          clearCart();
+          setIsProcessing(false);
+        }
       } else {
         if (res.status === 401) {
           router.push("/login?callbackUrl=/checkout");
         } else {
           setErrorMessage(data.error || "Gagal membuat pesanan.");
+          setIsProcessing(false);
         }
       }
     } catch (err) {
       setErrorMessage("Terjadi kesalahan jaringan.");
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -98,6 +129,13 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-background py-12">
+      <Script 
+        src={process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true" 
+          ? "https://app.midtrans.com/snap/snap.js" 
+          : "https://app.sandbox.midtrans.com/snap/snap.js"}
+        data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+        strategy="lazyOnload"
+      />
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <h1 className="font-serif text-3xl font-bold text-foreground mb-8">Checkout</h1>
 
