@@ -1,66 +1,78 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400;1,9..144,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap");
 @import "tailwindcss";
 
+/* =====================================================
+   PASAR FAJAR — Design System
+   Seperti pasar seni di pagi hari
+   Hangat, organik, bernafas, artistik
+   ===================================================== */
+
 :root {
-  --background: 191 15% 98%;      /* Very soft warm cyan-gray tint background */
-  --foreground: 191 25% 10%;      /* Deep maritime slate */
-  
-  --card: 191 15% 98%;
-  --card-foreground: 191 25% 10%;
-  
-  --popover: 191 15% 98%;
-  --popover-foreground: 191 25% 10%;
-  
-  --primary: 191 71% 52%;         /* Selat Bali Turquoise / Tosca (#2cbbdb) */
+  /* ── Backgrounds ─────────────────────────────────── */
+  --background: 0 0% 100%;           /* Clean White */
+  --foreground: 0 0% 15%;            /* Dark Grey */
+
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 15%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 15%;
+
+  /* ── Primary — Vibrant Orange ─────────── */
+  --primary: 19 89% 53%;             /* #F1641E — Etsy Style Orange */
   --primary-foreground: 0 0% 100%;
-  
-  --secondary: 46 65% 52%;       /* Kebaya Gold / Brass Accent (complements turquoise beautifully) */
-  --secondary-foreground: 191 25% 10%;
-  
-  --muted: 191 10% 90%;
-  --muted-foreground: 191 15% 40%;
-  
-  --accent: 191 71% 95%;          /* Soft Turquoise Accent */
-  --accent-foreground: 191 71% 25%;
-  
+
+  /* ── Secondary ─────────── */
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 15%;
+
+  /* ── Muted ─────────────────────────────────────────── */
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
+
+  /* ── Accent ──────────────────────────── */
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 15%;
+
   --destructive: 0 84% 60%;
-  --destructive-foreground: 191 15% 98%;
-  
-  --border: 191 10% 85%;
-  --input: 191 10% 85%;
-  --ring: 191 71% 52%;
-  
-  --radius: 0.75rem;
+  --destructive-foreground: 0 0% 100%;
+
+  /* ── Borders (sangat lembut) ──────────────────────── */
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 19 89% 53%;
+
+  --radius: 1rem;                     /* lebih bulat dari sebelumnya */
 }
 
 .dark {
-  --background: 191 30% 3%;       /* Deep Oceanic Abyss */
-  --foreground: 191 15% 95%;
-  
-  --card: 191 30% 5%;
-  --card-foreground: 191 15% 95%;
-  
-  --popover: 191 30% 5%;
-  --popover-foreground: 191 15% 95%;
-  
-  --primary: 191 71% 52%;         /* Selat Bali Turquoise / Tosca (#2cbbdb) */
-  --primary-foreground: 191 30% 3%;
-  
-  --secondary: 46 65% 52%;
-  --secondary-foreground: 191 30% 3%;
-  
-  --muted: 191 15% 12%;
-  --muted-foreground: 191 10% 70%;
-  
-  --accent: 191 71% 15%;          /* Dark Turquoise Accent */
-  --accent-foreground: 191 71% 80%;
-  
-  --destructive: 0 62% 40%;
-  --destructive-foreground: 191 15% 95%;
-  
-  --border: 191 15% 12%;
-  --input: 191 15% 12%;
-  --ring: 191 71% 52%;
+  --background: 18 30% 9%;
+  --foreground: 40 45% 92%;
+
+  --card: 18 28% 12%;
+  --card-foreground: 40 45% 92%;
+
+  --popover: 18 28% 12%;
+  --popover-foreground: 40 45% 92%;
+
+  --primary: 14 57% 62%;
+  --primary-foreground: 18 30% 9%;
+
+  --secondary: 132 20% 58%;
+  --secondary-foreground: 18 30% 9%;
+
+  --muted: 18 22% 18%;
+  --muted-foreground: 32 18% 58%;
+
+  --accent: 18 28% 18%;
+  --accent-foreground: 14 57% 75%;
+
+  --destructive: 0 60% 48%;
+  --destructive-foreground: 40 45% 92%;
+
+  --border: 18 22% 20%;
+  --input: 18 22% 20%;
+  --ring: 14 57% 62%;
 }
 
 @theme {
@@ -83,20 +95,31 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  
+
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
-  
-  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
+
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'DM Sans', system-ui, sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* Custom scrollbar — very soft */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--primary) / 0.25); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.45); }
+
+::selection {
+  background-color: hsl(var(--primary) / 0.12);
+  color: hsl(var(--foreground));
 }

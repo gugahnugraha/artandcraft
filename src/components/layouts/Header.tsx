@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard, Shield } from "lucide-react";
+import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard, Shield, X, Globe } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Header() {
   const { data: session, status } = useSession();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const handleSignOut = () => {
-    signOut({ callbackUrl: "/" });
-  };
-
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const { t, language, setLanguage } = useLanguage();
+
+  const handleSignOut = () => signOut({ callbackUrl: "/" });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,155 +24,203 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
-          
-          {/* Logo & Mobile Menu Toggle */}
-          <div className="flex items-center gap-2">
-            <button className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground md:hidden" aria-label="Open menu">
+    <header className="sticky top-0 z-50 w-full bg-background border-b border-border shadow-sm">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        
+        {/* TOP ROW: Logo, Search, Actions */}
+        <div className="flex h-16 md:h-20 items-center justify-between gap-4">
+
+          {/* Logo */}
+          <div className="flex items-center gap-3 shrink-0">
+            <button className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted md:hidden transition-colors" aria-label="Menu">
               <Menu className="h-5 w-5" />
             </button>
-            <Link href="/" className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-foreground transition-colors hover:opacity-90">
-              ArtAndCraft<span className="text-primary font-sans">.id</span>
+            <Link href="/" className="flex items-center gap-2 group">
+              <span className="font-serif text-2xl md:text-3xl text-primary tracking-tight">
+                Art <span className="italic font-normal">and</span> Craft
+              </span>
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <Link href="/search" className="hover:text-foreground transition-colors">Galeri</Link>
-            <Link href="/search?category=batik" className="hover:text-foreground transition-colors">Kategori</Link>
-            <Link href="/search" className="hover:text-foreground transition-colors">Pengrajin</Link>
-          </nav>
-
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="hidden sm:flex max-w-sm flex-1 items-center relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-4 w-4 text-muted-foreground" />
+          {/* Search (Desktop) - Centered & Prominent */}
+          <form onSubmit={handleSearch} className="hidden sm:flex flex-1 max-w-2xl items-center mx-4">
+            <div className="relative w-full group">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t.header.search_placeholder}
+                className="w-full rounded-full border-2 border-foreground bg-background py-2.5 md:py-3 pl-5 pr-12 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none transition-all"
+              />
+              <button 
+                type="submit" 
+                className="absolute right-1 top-1 bottom-1 w-12 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                aria-label="Search"
+              >
+                <Search className="h-4 w-4" />
+              </button>
             </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari kain batik, macrame, kerajinan kayu..."
-              className="w-full rounded-full border border-border bg-card py-2 pl-9 pr-4 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all duration-200"
-            />
           </form>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Wishlist Link */}
-            <Link href="#" className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors" title="Wishlist">
-              <Heart className="h-5 w-5" />
-            </Link>
-            
-            {/* Cart Icon */}
-            <Link href="#" className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors relative" title="Keranjang">
-              <ShoppingBag className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                0
-              </span>
-            </Link>
-            
-            <div className="h-6 w-px bg-border hidden sm:block" />
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Mobile search toggle */}
+            <button onClick={() => setMobileSearchOpen(!mobileSearchOpen)} className="sm:hidden rounded-full p-2 text-foreground hover:bg-muted transition-colors">
+              <Search className="h-5 w-5" />
+            </button>
 
-            {/* Authentication States */}
+            {/* Language Switcher */}
+            <div className="relative hidden md:block">
+              <button 
+                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                className="flex items-center gap-1 rounded-full p-2 text-foreground hover:bg-muted transition-colors"
+                title="Change Language"
+              >
+                <Globe className="h-5 w-5" />
+                <span className="text-xs uppercase font-medium">{language}</span>
+              </button>
+              {langDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setLangDropdownOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-24 rounded-xl border border-border bg-card p-1 shadow-lg z-20">
+                    <button
+                      onClick={() => { setLanguage("id"); setLangDropdownOpen(false); }}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${language === "id" ? "bg-primary/10 text-primary" : "hover:bg-muted text-foreground"}`}
+                    >
+                      ID
+                    </button>
+                    <button
+                      onClick={() => { setLanguage("en"); setLangDropdownOpen(false); }}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${language === "en" ? "bg-primary/10 text-primary" : "hover:bg-muted text-foreground"}`}
+                    >
+                      EN
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Sign In / User Auth */}
             {status === "loading" ? (
-              <div className="h-8 w-8 rounded-full bg-accent animate-pulse" />
+              <div className="h-8 w-8 rounded-full bg-muted animate-pulse mx-2" />
             ) : session ? (
-              <div className="relative">
-                {/* User Dropdown Button */}
+              <div className="relative mx-1">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-1.5 rounded-full bg-accent/80 p-1.5 pr-3 text-sm font-semibold text-accent-foreground hover:bg-accent transition-colors"
+                  className="flex items-center gap-2 rounded-full p-2 text-foreground hover:bg-muted transition-colors"
                 >
-                  <div className="h-6 w-6 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-xs">
+                  <div className="h-7 w-7 rounded-full bg-primary/10 text-primary font-serif text-sm font-medium flex items-center justify-center">
                     {session.user.name?.charAt(0) || "U"}
                   </div>
-                  <span className="hidden md:inline max-w-[80px] truncate">{session.user.name?.split(" ")[0]}</span>
                 </button>
 
-                {/* Dropdown Menu */}
                 {dropdownOpen && (
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
-                    <div className="absolute right-0 mt-2 w-56 rounded-xl border border-border bg-card p-2 shadow-lg z-20">
-                      
-                      {/* User Identity Info */}
-                      <div className="px-3 py-2 border-b border-border/40 mb-1.5 text-left">
-                        <p className="text-sm font-bold text-foreground truncate">{session.user.name}</p>
-                        <p className="text-xs text-muted-foreground truncate mb-1">{session.user.email}</p>
-                        <span className="inline-block text-[10px] font-bold tracking-wider uppercase bg-primary/10 text-primary px-2 py-0.5 rounded">
+                    <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-border bg-card p-2 shadow-xl z-20">
+                      <div className="px-3 py-3 mb-1 border-b border-border/50">
+                        <p className="text-sm font-medium text-foreground truncate">{session.user.name}</p>
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{session.user.email}</p>
+                        <span className="inline-block mt-2 text-[10px] font-bold tracking-widest uppercase bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                           {session.user.role}
                         </span>
                       </div>
 
-                      {/* Upgrade/Dashboard dynamic link based on role */}
-                      {session.user.role === "BUYER" && (
-                        <Link
-                          href="/seller/setup"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                        >
-                          <Store className="h-4 w-4 text-primary" />
-                          <span>Mulai Jualan (Buka Toko)</span>
+                      <div className="pt-1 space-y-0.5">
+                        {session.user.role === "BUYER" && (
+                          <Link href="/seller/setup" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                            <Store className="h-4 w-4 text-muted-foreground" />
+                            <span>{t.header.open_store}</span>
+                          </Link>
+                        )}
+                        {session.user.role === "SELLER" && (
+                          <Link href="/seller/products" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                            <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+                            <span>{t.header.store_dashboard}</span>
+                          </Link>
+                        )}
+                        {session.user.role === "ADMIN" && (
+                          <Link href="/admin" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                            <Shield className="h-4 w-4 text-muted-foreground" />
+                            <span>{t.header.admin_panel}</span>
+                          </Link>
+                        )}
+                        <Link href="#" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span>{t.header.my_profile}</span>
                         </Link>
-                      )}
-
-                      {session.user.role === "SELLER" && (
-                        <Link
-                          href="#"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
                         >
-                          <LayoutDashboard className="h-4 w-4 text-primary" />
-                          <span>Dashboard Penjual</span>
-                        </Link>
-                      )}
-
-                      {session.user.role === "ADMIN" && (
-                        <Link
-                          href="#"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                        >
-                          <Shield className="h-4 w-4 text-primary" />
-                          <span>Admin Panel</span>
-                        </Link>
-                      )}
-
-                      <Link
-                        href="#"
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                      >
-                        <User className="h-4 w-4" />
-                        <span>Profil Saya</span>
-                      </Link>
-
-                      {/* Sign Out Button */}
-                      <button
-                        onClick={handleSignOut}
-                        className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>Keluar</span>
-                      </button>
-
+                          <LogOut className="h-4 w-4" />
+                          <span>{t.header.logout}</span>
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
               </div>
             ) : (
-              <Link href="/login" className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent/85 transition-colors">
-                <User className="h-4 w-4" />
-                <span>Masuk</span>
+              <Link href="/login" className="hidden md:flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-foreground hover:bg-muted transition-all mx-1">
+                {t.header.login}
               </Link>
             )}
-          </div>
 
+            {/* Wishlist */}
+            <Link href="#" className="rounded-full p-2 text-foreground hover:bg-muted transition-colors">
+              <Heart className="h-5 w-5" />
+            </Link>
+
+            {/* Cart */}
+            <Link href="#" className="rounded-full p-2 text-foreground hover:bg-muted transition-colors relative">
+              <ShoppingBag className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground border-2 border-background">
+                0
+              </span>
+            </Link>
+          </div>
         </div>
+        
+        {/* BOTTOM ROW: Secondary Navigation (Categories) */}
+        <nav className="hidden md:flex items-center justify-center gap-6 h-10 pb-2">
+          {[
+            { label: "Batik", href: "/search?category=batik" },
+            { label: "Woodcraft", href: "/search?category=wood-craft" },
+            { label: "Ceramics", href: "/search?category=pottery" },
+            { label: "Jewelry", href: "/search?category=jewelry" },
+            { label: "Macrame", href: "/search?category=macrame" },
+            { label: "Leather", href: "/search?category=leather-craft" },
+            { label: "Home Decor", href: "/search?category=home-decor" },
+          ].map(({ label, href }) => (
+            <Link key={label} href={href} className="text-[13px] font-medium text-foreground hover:underline underline-offset-4 transition-all">
+              {label}
+            </Link>
+          ))}
+        </nav>
       </div>
+
+      {/* Mobile Search Expandable */}
+      {mobileSearchOpen && (
+        <div className="sm:hidden border-t border-border bg-background px-4 py-3 shadow-inner">
+          <form onSubmit={handleSearch} className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t.header.search_placeholder}
+                autoFocus
+                className="w-full rounded-full border-2 border-foreground bg-background py-2.5 pl-9 pr-4 text-sm text-foreground focus:border-primary focus:outline-none transition-all"
+              />
+            </div>
+            <button type="button" onClick={() => setMobileSearchOpen(false)} className="rounded-full p-2 text-muted-foreground hover:bg-muted">
+              <X className="h-5 w-5" />
+            </button>
+          </form>
+        </div>
+      )}
     </header>
   );
 }

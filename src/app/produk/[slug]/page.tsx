@@ -165,9 +165,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
                       {product.subcategory.name}
                     </span>
                   )}
-                  {!dbOnline && (
-                    <span className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 px-2 py-0.5 rounded-full">Mode Demo</span>
-                  )}
                 </div>
 
                 <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-3">

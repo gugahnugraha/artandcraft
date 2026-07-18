@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Search, SlidersHorizontal, Star, MapPin, Heart, ChevronDown } from "lucide-react";
 import type { Metadata } from "next";
+import ProductCard from "@/components/ui/ProductCard";
 
 interface SearchPageProps {
   searchParams: Promise<{
@@ -172,7 +173,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             ) : (
               <span>Jelajahi <strong className="text-foreground">{dbOnline ? totalCount : "ribuan"}</strong> karya kerajinan pilihan</span>
             )}
-            {!dbOnline && <span className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 px-2 py-0.5 rounded-full ml-2">Mode Demo</span>}
           </div>
         </div>
       </div>
@@ -279,63 +279,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {products.map((prod) => {
-                  const hasDiscount = prod.discount > 0;
-                  const discountedPrice = prod.price * (1 - prod.discount / 100);
-                  return (
-                    <Link
-                      key={prod.id}
-                      href={`/produk/${prod.slug}`}
-                      className="group flex flex-col rounded-xl border border-border bg-card overflow-hidden shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300"
-                    >
-                      {/* Image */}
-                      <div className="aspect-square w-full bg-primary/5 relative flex items-center justify-center overflow-hidden">
-                        {prod.photos?.[0] ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={prod.photos[0]} alt={prod.title} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
-                        ) : (
-                          <span className="text-2xl font-serif text-foreground/20 group-hover:scale-105 transition-transform duration-300">
-                            {prod.title.split(" ").slice(-1)[0]}
-                          </span>
-                        )}
-                        {hasDiscount && (
-                          <span className="absolute top-2 left-2 bg-secondary text-secondary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
-                            -{prod.discount}%
-                          </span>
-                        )}
-                        <button
-                          className="absolute top-2 right-2 rounded-full bg-card/80 p-1.5 text-muted-foreground backdrop-blur-sm hover:text-red-500 hover:bg-card shadow-sm transition-colors"
-                        >
-                          <Heart className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-
-                      {/* Details */}
-                      <div className="p-4 flex-1 flex flex-col">
-                        <span className="text-[9px] font-bold text-primary tracking-wider uppercase mb-1">{prod.categoryName}</span>
-                        <h3 className="font-semibold text-foreground text-xs line-clamp-2 min-h-[32px] mb-1.5 group-hover:text-primary transition-colors">{prod.title}</h3>
-                        <p className="text-[10px] text-muted-foreground mb-3">{prod.sellerName}</p>
-
-                        <div className="mt-auto pt-3 border-t border-border/40 flex justify-between items-center">
-                          <div>
-                            {hasDiscount && (
-                              <span className="block text-[10px] text-muted-foreground line-through">
-                                Rp {prod.price.toLocaleString("id-ID")}
-                              </span>
-                            )}
-                            <span className="text-sm font-bold text-foreground">
-                              Rp {(hasDiscount ? discountedPrice : prod.price).toLocaleString("id-ID")}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-0.5 text-amber-500 text-[10px] font-semibold">
-                            <Star className="h-3 w-3 fill-amber-500" />
-                            <span>4.9</span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
+            {products.map((prod) => (
+              <ProductCard key={prod.id} {...prod} />
+            ))}
               </div>
             )}
           </div>
