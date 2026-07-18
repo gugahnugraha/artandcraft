@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   ChevronRight,
   ShieldCheck,
+  Wallet,
 } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -21,6 +22,7 @@ const adminLinks = [
   { href: "/admin", label: "Ringkasan", icon: LayoutDashboard },
   { href: "/admin/users", label: "Manajemen Pengguna", icon: Users },
   { href: "/admin/transactions", label: "Transaksi", icon: CreditCard },
+  { href: "/admin/withdrawals", label: "Penarikan Saldo", icon: Wallet },
 ];
 
 export default async function AdminLayout({

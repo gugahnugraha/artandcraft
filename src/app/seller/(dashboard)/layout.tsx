@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, Store, Tag } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, Store, Tag, MessageSquare, Wallet } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
 export default async function SellerLayout({ children }: { children: React.ReactNode }) {
@@ -75,6 +75,20 @@ export default async function SellerLayout({ children }: { children: React.React
           >
             <Tag className="h-4.5 w-4.5 text-muted-foreground" />
             Kupon & Promo
+          </Link>
+          <Link 
+            href="/seller/messages" 
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            <MessageSquare className="h-4.5 w-4.5 text-muted-foreground" />
+            Pesan Masuk
+          </Link>
+          <Link 
+            href="/seller/wallet" 
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            <Wallet className="h-4.5 w-4.5 text-muted-foreground" />
+            Dompet & Saldo
           </Link>
           <Link 
             href="/seller/settings" 

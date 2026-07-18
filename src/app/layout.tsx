@@ -7,6 +7,7 @@ import CartSyncProvider from "@/components/providers/CartSyncProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { auth } from "@/auth";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -24,16 +25,18 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html lang="id" className={cn("h-full antialiased", "font-sans", geist.variable)}>
       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-200">
         <LanguageProvider>
-          <AuthProvider>
+          <AuthProvider session={session}>
             <CartSyncProvider>
               <Header />
               <main className="flex-1 flex flex-col">{children}</main>

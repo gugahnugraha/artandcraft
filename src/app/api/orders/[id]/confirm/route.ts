@@ -8,7 +8,7 @@ interface RouteParams {
 
 /**
  * POST /api/orders/[id]/confirm
- * Buyer confirms they received the order — moves SHIPPED → DELIVERED
+ * Buyer confirms they received the order — moves SHIPPED → DELIVERED and credits seller balance
  */
 export async function POST(_req: Request, { params }: RouteParams) {
   const session = await auth();
@@ -20,7 +20,13 @@ export async function POST(_req: Request, { params }: RouteParams) {
 
   const order = await prisma.order.findUnique({
     where: { id },
-    select: { id: true, userId: true, status: true },
+    include: {
+      items: {
+        include: {
+          product: { select: { sellerId: true, title: true } }
+        }
+      }
+    }
   });
 
   if (!order) {
@@ -38,27 +44,78 @@ export async function POST(_req: Request, { params }: RouteParams) {
     );
   }
 
-  await prisma.$transaction([
-    prisma.order.update({
+  // Calculate earnings per seller
+  const sellerEarnings = new Map<string, number>();
+
+  order.items.forEach(item => {
+    const sellerId = item.product.sellerId;
+    const itemTotal = Number(item.price) * item.quantity;
+    sellerEarnings.set(sellerId, (sellerEarnings.get(sellerId) || 0) + itemTotal);
+  });
+
+  await prisma.$transaction(async (tx) => {
+    // 1. Update Order Status
+    await tx.order.update({
       where: { id },
       data: { status: "DELIVERED" },
-    }),
-    prisma.orderTracking.create({
+    });
+
+    // 2. Order Tracking
+    await tx.orderTracking.create({
       data: {
         orderId: id,
         status: "Pesanan Diterima",
         description: "Pembeli mengonfirmasi pesanan telah diterima.",
       },
-    }),
-    prisma.notification.create({
+    });
+
+    // 3. Buyer Notification
+    await tx.notification.create({
       data: {
         userId: order.userId,
         title: "Pesanan Selesai! ✅",
         message: `Pesanan #${id.slice(-8).toUpperCase()} telah selesai. Terima kasih telah berbelanja di ArtAndCraft.id!`,
         link: `/dashboard/orders/${id}`,
       },
-    }),
-  ]);
+    });
+
+    // 4. Credit Seller Balances
+    for (const [sellerId, amount] of sellerEarnings.entries()) {
+      await tx.sellerProfile.update({
+        where: { id: sellerId },
+        data: {
+          balance: { increment: amount }
+        }
+      });
+
+      await tx.walletTransaction.create({
+        data: {
+          sellerProfileId: sellerId,
+          type: "CREDIT",
+          amount,
+          description: `Hasil penjualan pesanan #${id.slice(-8).toUpperCase()}`,
+          referenceId: id,
+        }
+      });
+
+      // Get seller userId for notification
+      const sellerProfile = await tx.sellerProfile.findUnique({
+        where: { id: sellerId },
+        select: { userId: true, storeName: true }
+      });
+
+      if (sellerProfile) {
+        await tx.notification.create({
+          data: {
+            userId: sellerProfile.userId,
+            title: "Saldo Toko Bertambah! 💰",
+            message: `Dana sebesar Rp ${amount.toLocaleString("id-ID")} dari pesanan #${id.slice(-8).toUpperCase()} telah diteruskan ke saldo toko Anda.`,
+            link: `/seller/wallet`,
+          }
+        });
+      }
+    }
+  });
 
   // Redirect back to order detail after confirmation
   return NextResponse.redirect(

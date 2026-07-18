@@ -6,6 +6,7 @@ import ProductReviews from "./ProductReviews";
 import WishlistButton from "@/components/ui/WishlistButton";
 import ProductGallery from "./ProductGallery";
 import AddToCartButton from "./AddToCartButton";
+import AskSellerButton from "@/components/ui/AskSellerButton";
 import { ShieldCheck, MapPin, Star, Package, Scale, Maximize, Tag, Store, ArrowLeft, Share2 } from "lucide-react";
 
 interface PageProps {
@@ -254,12 +255,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
               {/* CTA Buttons */}
               <div className="flex gap-3 pt-2 items-center">
                 <div className="flex-1">
-                  <AddToCartButton product={product} />
+                  <AddToCartButton product={{
+                    ...product,
+                    price: Number(product.price),
+                    discount: Number(product.discount)
+                  }} />
                 </div>
+                <AskSellerButton sellerProfileId={product.seller.id} productId={product.id} storeName={product.seller.storeName} variant="icon" />
                 <WishlistButton productId={product.id} showText={false} className="shrink-0 h-[52px] w-[52px] !p-0" />
-                <button className="rounded-xl border border-border bg-card h-[52px] w-[52px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shrink-0">
-                  <Share2 className="h-4 w-4" />
-                </button>
               </div>
 
               <p className="text-xs text-muted-foreground">

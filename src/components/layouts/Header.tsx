@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard, Shield, X, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -24,10 +25,13 @@ export default function Header() {
 
   const handleSignOut = () => signOut({ callbackUrl: "/" });
 
+  const router = useRouter();
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setMobileSearchOpen(false);
     }
   };
 
@@ -190,7 +194,7 @@ export default function Header() {
             )}
 
             {/* Wishlist */}
-            <Link href="#" className="rounded-full p-2 text-foreground hover:bg-muted transition-colors">
+            <Link href="/dashboard/wishlist" className="rounded-full p-2 text-foreground hover:bg-muted transition-colors" title="Wishlist Saya">
               <Heart className="h-5 w-5" />
             </Link>
 

@@ -1,7 +1,11 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { Package, ShoppingBag, CreditCard, TrendingUp, AlertCircle } from "lucide-react";
+import { Package, ShoppingBag, CreditCard, TrendingUp, AlertCircle, BarChart3, Star } from "lucide-react";
 import Link from "next/link";
+import { subDays, format } from "date-fns";
+import { id } from "date-fns/locale";
+import SellerAnalyticsChart from "./SellerAnalyticsChart";
+import TopProductsList from "./TopProductsList";
 
 export default async function SellerDashboardPage() {
   const session = await auth();
@@ -45,6 +49,68 @@ export default async function SellerDashboardPage() {
       pendingRevenue += Number(item.price) * item.quantity;
     }
   });
+
+  // --- ANALYTICS DATA FETCHING (Last 30 Days) ---
+  const thirtyDaysAgo = subDays(new Date(), 30);
+  
+  const historicalOrderItems = await prisma.orderItem.findMany({
+    where: {
+      product: { sellerId: sellerProfile.id },
+      order: {
+        status: { in: ["PAID", "PROCESSING", "SHIPPED", "DELIVERED"] },
+        createdAt: { gte: thirtyDaysAgo }
+      }
+    },
+    include: {
+      order: { select: { createdAt: true } },
+      product: { select: { id: true, title: true, slug: true, price: true, photos: true } }
+    }
+  });
+
+  // 1. Aggregate Daily Revenue
+  const revenueMap = new Map<string, number>();
+  // Pre-fill last 30 days with 0
+  for (let i = 29; i >= 0; i--) {
+    const d = subDays(new Date(), i);
+    revenueMap.set(format(d, "dd MMM", { locale: id }), 0);
+  }
+
+  historicalOrderItems.forEach(item => {
+    const dateStr = format(item.order.createdAt, "dd MMM", { locale: id });
+    if (revenueMap.has(dateStr)) {
+      revenueMap.set(dateStr, revenueMap.get(dateStr)! + (Number(item.price) * item.quantity));
+    }
+  });
+
+  const chartData = Array.from(revenueMap.entries()).map(([date, revenue]) => ({
+    date,
+    revenue
+  }));
+
+  // 2. Aggregate Top Products
+  const productStats = new Map<string, any>();
+  
+  historicalOrderItems.forEach(item => {
+    if (!productStats.has(item.productId)) {
+      productStats.set(item.productId, {
+        id: item.product.id,
+        title: item.product.title,
+        slug: item.product.slug,
+        price: Number(item.product.price),
+        image: item.product.photos[0] || null,
+        totalSold: 0,
+        totalRevenue: 0
+      });
+    }
+    const stat = productStats.get(item.productId);
+    stat.totalSold += item.quantity;
+    stat.totalRevenue += Number(item.price) * item.quantity;
+  });
+
+  const topProducts = Array.from(productStats.values())
+    .sort((a, b) => b.totalSold - a.totalSold)
+    .slice(0, 5);
+  // --- END ANALYTICS DATA FETCHING ---
 
   return (
     <div className="space-y-6">
@@ -132,6 +198,30 @@ export default async function SellerDashboardPage() {
               <p className="text-sm text-muted-foreground">Ayo promosikan produk Anda atau tambah produk baru untuk menarik pembeli.</p>
             </div>
           )}
+        </div>
+
+        {/* Analytics Section (Chart) */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-lg text-foreground flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Pendapatan (30 Hari Terakhir)
+            </h2>
+          </div>
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <SellerAnalyticsChart data={chartData} />
+          </div>
+        </div>
+
+        {/* Top Products */}
+        <div className="space-y-4">
+          <h2 className="font-bold text-lg text-foreground flex items-center gap-2">
+            <Star className="h-5 w-5 text-amber-500" />
+            Produk Terlaris
+          </h2>
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <TopProductsList products={topProducts} />
+          </div>
         </div>
 
         {/* Quick Tips */}

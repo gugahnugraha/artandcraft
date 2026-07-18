@@ -16,6 +16,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import StoreFollowButton from "./StoreFollowButton";
 import StoreTabs from "./StoreTabs";
+import AskSellerButton from "@/components/ui/AskSellerButton";
 import ProductCard from "@/components/ui/ProductCard";
 
 const BASE_URL = process.env.NEXTAUTH_URL || "https://artandcraft.id";
@@ -116,18 +117,11 @@ export default async function StorefrontPage({ params }: PageProps) {
       take: 12,
     });
 
-    // Recalculate store rating from all reviews
+    // Recalculate store rating from all reviews for display (DO NOT mutate DB in render phase)
     if (reviews.length > 0) {
       const avgRating =
         reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length;
-      // Update storeRating in DB if significantly different
-      if (Math.abs(seller.storeRating - avgRating) > 0.05) {
-        await prisma.sellerProfile.update({
-          where: { id: seller.id },
-          data: { storeRating: avgRating },
-        });
-        seller.storeRating = avgRating;
-      }
+      seller.storeRating = avgRating;
     }
 
     // Check if current user follows this store
@@ -239,7 +233,8 @@ export default async function StorefrontPage({ params }: PageProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 items-center">
+            <AskSellerButton sellerProfileId={seller.id} storeName={seller.storeName} variant="outline" />
             <StoreFollowButton
               storeId={seller.id}
               storeSlug={seller.storeSlug}
