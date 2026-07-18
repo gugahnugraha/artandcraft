@@ -24,11 +24,7 @@ export const authConfig = {
       }
 
       if (isOnSeller) {
-        // If route is /seller/setup, we allow BUYER role to configure their store
-        if (nextUrl.pathname === "/seller/setup") {
-          return isLoggedIn;
-        }
-        return isLoggedIn && (auth.user?.role === "SELLER" || auth.user?.role === "ADMIN");
+        return isLoggedIn;
       }
 
       return true;

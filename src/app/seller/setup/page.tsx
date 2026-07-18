@@ -68,6 +68,8 @@ export default function SellerSetupPage() {
         });
         setSuccess(true);
         setIsSubmitting(false);
+        // Force navigate to seller dashboard
+        window.location.href = "/seller";
       }
     } catch (err: any) {
       setError("Terjadi kesalahan sistem saat mendaftarkan toko.");
@@ -98,15 +100,15 @@ export default function SellerSetupPage() {
     );
   }
 
-  // If user is already a SELLER or ADMIN, block onboarding
+  // If user is already a SELLER or ADMIN, block onboarding and point to dashboard
   if (session.user.role === "SELLER" || session.user.role === "ADMIN") {
     return (
       <div className="flex flex-1 flex-col items-center justify-center py-20 px-4 text-center">
         <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
         <h2 className="text-xl font-bold font-serif mb-2">Toko Anda Sudah Aktif</h2>
         <p className="text-muted-foreground mb-6">Akun Anda sudah terdaftar sebagai pengrajin/penjual di ArtAndCraft.id.</p>
-        <Link href="/" className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/95 transition-colors">
-          Kembali ke Beranda
+        <Link href="/seller" className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/95 transition-colors">
+          Masuk ke Dashboard Toko
         </Link>
       </div>
     );

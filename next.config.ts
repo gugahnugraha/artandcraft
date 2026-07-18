@@ -42,24 +42,9 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        // Cloudflare R2 public bucket
+        // Support any custom domain (Cloudflare R2, Custom Domain, CDN, etc.)
         protocol: "https",
-        hostname: "*.r2.dev",
-      },
-      {
-        // AWS S3
-        protocol: "https",
-        hostname: "*.amazonaws.com",
-      },
-      {
-        // Google user profile photos (OAuth)
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-      },
-      {
-        // UI Avatars fallback
-        protocol: "https",
-        hostname: "ui-avatars.com",
+        hostname: "**",
       },
     ],
   },

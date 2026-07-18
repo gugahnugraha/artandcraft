@@ -153,8 +153,8 @@ export default function Header() {
                           </Link>
                         )}
                         {session.user.role === "SELLER" && (
-                          <Link href="/seller/products" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                            <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+                          <Link href="/seller" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                            <Store className="h-4 w-4 text-muted-foreground" />
                             <span>{t.header.store_dashboard}</span>
                           </Link>
                         )}
@@ -164,7 +164,7 @@ export default function Header() {
                             <span>{t.header.admin_panel}</span>
                           </Link>
                         )}
-                        <Link href="#" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                        <Link href="/dashboard/profile" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                           <User className="h-4 w-4 text-muted-foreground" />
                           <span>Profil Saya</span>
                         </Link>

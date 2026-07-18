@@ -17,6 +17,7 @@ import type { Metadata } from "next";
 import StoreFollowButton from "./StoreFollowButton";
 import StoreTabs from "./StoreTabs";
 import AskSellerButton from "@/components/ui/AskSellerButton";
+import CustomRequestButton from "./CustomRequestButton";
 import ProductCard from "@/components/ui/ProductCard";
 
 const BASE_URL = process.env.NEXTAUTH_URL || "https://artandcraft.id";
@@ -233,7 +234,8 @@ export default async function StorefrontPage({ params }: PageProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2 shrink-0 items-center">
+          <div className="flex flex-wrap gap-2 shrink-0 items-center">
+            <CustomRequestButton sellerProfileId={seller.id} storeName={seller.storeName} />
             <AskSellerButton sellerProfileId={seller.id} storeName={seller.storeName} variant="outline" />
             <StoreFollowButton
               storeId={seller.id}

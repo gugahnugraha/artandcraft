@@ -58,6 +58,7 @@ model User {
   storeFollows  StoreFollower[]
   buyerConversations Conversation[] @relation("BuyerConversations")
   sentMessages       Message[]
+  customRequests     CustomRequest[] @relation("BuyerCustomRequests")
 }
 
 model Account {
@@ -127,6 +128,7 @@ model SellerProfile {
   sellerConversations Conversation[] @relation("SellerConversations")
   withdrawals      Withdrawal[]
   walletTransactions WalletTransaction[]
+  customRequests   CustomRequest[] @relation("SellerCustomRequests")
 }
 
 model StoreFollower {
@@ -509,4 +511,34 @@ model WalletTransaction {
   createdAt       DateTime     @default(now())
 
   sellerProfile SellerProfile @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CUSTOM ORDER REQUESTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CustomRequestStatus {
+  PENDING
+  OFFER_SENT
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
+model CustomRequest {
+  id              String              @id @default(cuid())
+  buyerId         String
+  sellerProfileId String
+  title           String
+  description     String              @db.Text
+  budget          Decimal?            @db.Decimal(12, 2)
+  referenceImages String[]            @default([])
+  status          CustomRequestStatus @default(PENDING)
+  offeredPrice    Decimal?            @db.Decimal(12, 2)
+  notes           String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  buyer         User          @relation("BuyerCustomRequests", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerProfile SellerProfile @relation("SellerCustomRequests", fields: [sellerProfileId], references: [id], onDelete: Cascade)
 }

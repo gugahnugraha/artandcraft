@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, Store, Tag, MessageSquare, Wallet } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, Store, Tag, MessageSquare, Wallet, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
 export default async function SellerLayout({ children }: { children: React.ReactNode }) {
@@ -11,11 +11,7 @@ export default async function SellerLayout({ children }: { children: React.React
     redirect("/login");
   }
 
-  if (session.user.role !== "SELLER" && session.user.role !== "ADMIN") {
-    redirect("/seller/setup");
-  }
-
-  // Fetch Seller Profile to display store name
+  // Fetch Seller Profile to display store name directly from DB
   const sellerProfile = await prisma.sellerProfile.findUnique({
     where: { userId: session.user.id }
   });
@@ -89,6 +85,13 @@ export default async function SellerLayout({ children }: { children: React.React
           >
             <Wallet className="h-4.5 w-4.5 text-muted-foreground" />
             Dompet & Saldo
+          </Link>
+          <Link 
+            href="/seller/custom-requests" 
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            <Sparkles className="h-4.5 w-4.5 text-muted-foreground" />
+            Pesanan Custom
           </Link>
           <Link 
             href="/seller/settings" 
