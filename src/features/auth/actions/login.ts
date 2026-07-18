@@ -4,7 +4,7 @@ import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { loginSchema, LoginInput } from "../schemas";
 
-export async function login(data: LoginInput) {
+export async function login(data: LoginInput, callbackUrl?: string) {
   const parsed = loginSchema.safeParse(data);
   if (!parsed.success) {
     return { error: "Email atau password tidak valid" };
@@ -16,7 +16,7 @@ export async function login(data: LoginInput) {
     await signIn("credentials", {
       email: email.toLowerCase(),
       password,
-      redirectTo: "/",
+      redirectTo: callbackUrl || "/",
     });
     return { success: true };
   } catch (error) {

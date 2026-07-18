@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard, Shield, X, Globe } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useCart } from "@/store/cart";
 
 export default function Header() {
   const { data: session, status } = useSession();
@@ -13,6 +14,12 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { t, language, setLanguage } = useLanguage();
+  const [isMounted, setIsMounted] = useState(false);
+  const totalCartItems = useCart((state) => state.getTotalItems());
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleSignOut = () => signOut({ callbackUrl: "/" });
 
@@ -173,11 +180,13 @@ export default function Header() {
             </Link>
 
             {/* Cart */}
-            <Link href="#" className="rounded-full p-2 text-foreground hover:bg-muted transition-colors relative">
+            <Link href="/cart" className="rounded-full p-2 text-foreground hover:bg-muted transition-colors relative">
               <ShoppingBag className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground border-2 border-background">
-                0
-              </span>
+              {isMounted && totalCartItems > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground border-2 border-background">
+                  {totalCartItems}
+                </span>
+              )}
             </Link>
           </div>
         </div>

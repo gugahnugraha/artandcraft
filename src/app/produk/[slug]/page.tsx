@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import ProductGallery from "./ProductGallery";
+import AddToCartButton from "./AddToCartButton";
 import { ShieldCheck, MapPin, Star, Package, Scale, Maximize, Tag, Store, ArrowLeft, Share2 } from "lucide-react";
 
 interface PageProps {
@@ -249,22 +250,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex gap-3 pt-2">
-                <button
-                  disabled
-                  className="flex-1 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/95 transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
-                  title="Fitur keranjang akan tersedia di Milestone 5"
-                >
-                  Tambah ke Keranjang
-                </button>
-                <button
-                  disabled
-                  className="rounded-xl border border-border bg-card px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-accent transition-colors disabled:opacity-60"
-                  title="Fitur beli langsung akan tersedia di Milestone 5"
-                >
-                  Beli Sekarang
-                </button>
-                <button className="rounded-xl border border-border bg-card px-4 py-3.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
+              <div className="flex gap-3 pt-2 items-center">
+                <div className="flex-1">
+                  <AddToCartButton product={product} />
+                </div>
+                <button className="rounded-xl border border-border bg-card px-4 py-3.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shrink-0">
                   <Share2 className="h-4 w-4" />
                 </button>
               </div>

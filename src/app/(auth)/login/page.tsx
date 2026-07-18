@@ -31,12 +31,15 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await login(data);
+      const searchParams = new URLSearchParams(window.location.search);
+      const callbackUrl = searchParams.get("callbackUrl") || undefined;
+
+      const res = await login(data, callbackUrl);
       if (res?.error) {
         setError(res.error);
         setIsSubmitting(false);
       } else {
-        router.push("/");
+        router.push(callbackUrl || "/");
         router.refresh();
       }
     } catch (err: any) {
