@@ -59,19 +59,19 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Search (Desktop) - Centered & Prominent */}
-          <form onSubmit={handleSearch} className="hidden sm:flex flex-1 max-w-2xl items-center mx-4">
-            <div className="relative w-full group">
+          {/* Search (Desktop) - Centered & Prominent with Smooth Expand/Contract Animation */}
+          <form onSubmit={handleSearch} className="hidden sm:flex flex-1 items-center justify-center mx-4">
+            <div className="relative w-full max-w-md focus-within:max-w-2xl transition-all duration-500 ease-in-out group">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t.header.search_placeholder}
-                className="w-full rounded-full border-2 border-foreground bg-background py-2.5 md:py-3 pl-5 pr-12 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none transition-all"
+                className="w-full rounded-full border-2 border-border bg-background py-2.5 pl-5 pr-12 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/15 focus:outline-none transition-all duration-300 shadow-sm hover:border-primary/50"
               />
               <button 
                 type="submit" 
-                className="absolute right-1 top-1 bottom-1 w-12 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="absolute right-1 top-1 bottom-1 w-11 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all active:scale-95 shadow-sm"
                 aria-label="Search"
               >
                 <Search className="h-4 w-4" />

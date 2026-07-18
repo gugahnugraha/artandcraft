@@ -78,16 +78,16 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex flex-1 items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-accent/20">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-border bg-card p-8 shadow-xl backdrop-blur-sm">
+    <div className="flex flex-1 items-center justify-center py-6 px-4 sm:px-6 bg-gradient-to-b from-background to-accent/20 my-auto">
+      <div className="w-full max-w-sm space-y-4 rounded-2xl border border-border bg-card p-6 shadow-lg">
 
         {/* Header */}
         <div className="text-center">
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-            Selamat Datang <span className="text-primary italic">Kembali</span>
+          <h2 className="font-serif text-2xl font-bold tracking-tight text-foreground">
+            Selamat Datang <span className="text-primary font-bold">Kembali</span>
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Masuk untuk mengakses keranjang belanja dan dashboard Anda
+          <p className="mt-1 text-xs text-muted-foreground">
+            Masuk untuk mengakses keranjang dan dashboard Anda
           </p>
         </div>
 
@@ -108,61 +108,61 @@ function LoginForm() {
         )}
 
         {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
+        <form className="mt-4 space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-3">
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 Alamat Email
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Mail className="h-4.5 w-4.5 text-muted-foreground" />
+                  <Mail className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
                   autoComplete="email"
-                  className={`w-full rounded-lg border bg-background py-2.5 pl-10 pr-4 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
+                  className={`w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-xs text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
                     errors.email ? "border-destructive" : "border-border"
                   }`}
                   {...registerField("email")}
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>
+                <p className="mt-1 text-[11px] text-destructive">{errors.email.message}</p>
               )}
             </div>
 
             {/* Password Field */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-1">
                 <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Kata Sandi
                 </label>
-                <Link href="/forgot-password" className="text-xs text-primary hover:underline font-semibold">
+                <Link href="/forgot-password" className="text-[11px] text-primary hover:underline font-semibold">
                   Lupa sandi?
                 </Link>
               </div>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <KeyRound className="h-4.5 w-4.5 text-muted-foreground" />
+                  <KeyRound className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   autoComplete="current-password"
-                  className={`w-full rounded-lg border bg-background py-2.5 pl-10 pr-4 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
+                  className={`w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-xs text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
                     errors.password ? "border-destructive" : "border-border"
                   }`}
                   {...registerField("password")}
                 />
               </div>
               {errors.password && (
-                <p className="mt-1 text-xs text-destructive">{errors.password.message}</p>
+                <p className="mt-1 text-[11px] text-destructive">{errors.password.message}</p>
               )}
             </div>
 
@@ -172,7 +172,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex h-11 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/95 transition-all shadow-md disabled:opacity-50"
+            className="w-full flex h-10 items-center justify-center gap-2 rounded-lg bg-primary text-xs font-bold text-primary-foreground hover:bg-primary/95 transition-all shadow-sm disabled:opacity-50 mt-2"
           >
             {isSubmitting ? (
               <>
@@ -186,12 +186,12 @@ function LoginForm() {
         </form>
 
         {/* Separator */}
-        <div className="relative my-6">
+        <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-border"></div>
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-3 text-muted-foreground font-semibold">Atau Lanjutkan Dengan</span>
+          <div className="relative flex justify-center text-[10px] uppercase">
+            <span className="bg-card px-2 text-muted-foreground font-semibold">Atau Lanjutkan Dengan</span>
           </div>
         </div>
 
@@ -199,9 +199,9 @@ function LoginForm() {
         <button
           onClick={() => nextAuthSignIn("google", { callbackUrl: "/" })}
           type="button"
-          className="w-full flex h-11 items-center justify-center gap-3 rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground hover:bg-muted transition-all shadow-sm"
+          className="w-full flex h-10 items-center justify-center gap-2.5 rounded-lg border border-border bg-card px-4 text-xs font-semibold text-foreground hover:bg-muted transition-all shadow-sm"
         >
-          <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+          <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
             <g transform="matrix(1, 0, 0, 1, 0, 0)">
               <path d="M21.35,11.1H12v2.7h5.38C16.88,15.75,14.69,17,12,17c-3.31,0-6-2.69-6-6s2.69-6,6-6c1.66,0,3.14,0.67,4.24,1.76l2.06-2.06C16.59,2.97,14.42,2,12,2C7.03,2,3,6.03,3,11s4.03,9,9,9c4.78,0,8.65-3.56,9-8.4C21.04,11.4,21.35,11.1,21.35,11.1z" fill="#EA4335" />
               <path d="M12,20c2.42,0,4.59-0.97,6.3-2.54l-2.06-2.06C15.14,16.33,13.66,17,12,17c-2.69,0-4.88-1.25-5.38-3.2H1.27v2.4C2.62,18.73,7.03,20,12,20z" fill="#34A853" />
@@ -213,7 +213,7 @@ function LoginForm() {
         </button>
 
         {/* Footer Link */}
-        <p className="text-center text-sm text-muted-foreground mt-6">
+        <p className="text-center text-xs text-muted-foreground mt-4">
           Belum memiliki akun?{" "}
           <Link href="/register" className="text-primary hover:underline font-semibold">
             Daftar Sekarang

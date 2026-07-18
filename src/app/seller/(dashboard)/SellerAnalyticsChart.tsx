@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface ChartDataPoint {
@@ -13,7 +12,6 @@ interface SellerAnalyticsChartProps {
 }
 
 export default function SellerAnalyticsChart({ data }: SellerAnalyticsChartProps) {
-  const { theme } = useTheme();
 
   // If no data, show a placeholder
   if (!data || data.length === 0) {
