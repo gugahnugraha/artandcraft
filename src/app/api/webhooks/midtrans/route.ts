@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     }
 
     // Determine new order status based on Midtrans transaction status
-    let newStatus: "PAID" | "CANCELLED" | "AWAITING_PAYMENT" = order.status;
+    let newStatus: any = order.status;
     let paymentStatus = order.paymentStatus;
 
     if (transaction_status === "capture") {

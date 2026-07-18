@@ -5,30 +5,32 @@ import { Star, Heart } from "lucide-react";
 import { useState } from "react";
 
 interface ProductCardProps {
-  id: string;
-  title: string;
-  slug: string;
-  price: number;
-  discount: number;
-  photos: string[];
-  categoryName: string;
-  sellerName: string;
+  id?: string;
+  title?: string;
+  slug?: string;
+  price?: number;
+  discount?: number;
+  photos?: string[];
+  categoryName?: string;
+  sellerName?: string;
   location?: string;
   rating?: number;
   reviewsCount?: number;
+  product?: any;
 }
 
-export default function ProductCard({
-  title,
-  slug,
-  price,
-  discount,
-  photos,
-  categoryName,
-  sellerName,
-  rating = 4.9,
-  reviewsCount = 18,
-}: ProductCardProps) {
+export default function ProductCard(props: ProductCardProps) {
+  const p = props.product || props;
+  const title = p.title || "Produk Kerajinan";
+  const slug = p.slug || "";
+  const price = Number(p.price || 0);
+  const discount = Number(p.discount || 0);
+  const photos = p.photos || [];
+  const categoryName = p.categoryName || p.category?.name || "";
+  const sellerName = p.sellerName || p.seller?.storeName || "";
+  const rating = p.rating || 4.9;
+  const reviewsCount = p.reviewsCount || 18;
+
   const [isWishlisted, setIsWishlisted] = useState(false);
   const hasDiscount = discount > 0;
   const finalPrice = hasDiscount ? price * (1 - discount / 100) : price;
@@ -49,7 +51,7 @@ export default function ProductCard({
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center select-none bg-muted/40">
             <span className="font-serif text-3xl font-light text-muted-foreground/30">
-              {categoryName ? categoryName.charAt(0) : title.charAt(0)}
+              {categoryName ? categoryName.charAt(0) : (title?.charAt(0) || "A")}
             </span>
           </div>
         )}

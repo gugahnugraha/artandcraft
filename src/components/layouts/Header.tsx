@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard, Shield, X, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -10,6 +10,7 @@ import { useCart } from "@/store/cart";
 import NotificationDropdown from "@/components/ui/NotificationDropdown";
 
 export default function Header() {
+  const pathname = usePathname();
   const { data: session, status } = useSession();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
@@ -22,6 +23,15 @@ export default function Header() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Hide Header on Auth Pages (Login, Register, Reset Password)
+  const isAuthPage = 
+    pathname === "/login" || 
+    pathname === "/register" || 
+    pathname === "/forgot-password" || 
+    pathname.startsWith("/reset-password");
+
+  if (isAuthPage) return null;
 
   const handleSignOut = () => signOut({ callbackUrl: "/" });
 
