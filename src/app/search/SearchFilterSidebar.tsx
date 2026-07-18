@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Filter, RotateCcw, ChevronDown, Check } from "lucide-react";
+import { Filter, RotateCcw, Check } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CategoryOption {
   id: string;
@@ -17,6 +18,7 @@ interface SearchFilterSidebarProps {
 export default function SearchFilterSidebar({ categories }: SearchFilterSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   // Read current query params
   const currentQuery = searchParams.get("q") || "";
@@ -73,7 +75,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
           className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
         >
           <Filter className="h-4 w-4 text-primary" />
-          Filter & Urutkan
+          Filter
         </button>
 
         {/* Sort Select on Mobile */}
@@ -82,9 +84,9 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
           onChange={(e) => applyFilter({ sort: e.target.value })}
           className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         >
-          <option value="newest">Terbaru</option>
-          <option value="price_low">Harga: Terendah</option>
-          <option value="price_high">Harga: Tertinggi</option>
+          <option value="newest">{t.search.sort_latest}</option>
+          <option value="price_low">{t.search.sort_price_low}</option>
+          <option value="price_high">{t.search.sort_price_high}</option>
         </select>
       </div>
 
@@ -97,7 +99,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
         <div className="flex items-center justify-between pb-4 border-b border-border">
           <h3 className="font-serif font-bold text-lg text-foreground flex items-center gap-2">
             <Filter className="h-4 w-4 text-primary" />
-            Filter Produk
+            {t.search.title}
           </h3>
           {(currentCategory || currentMinPrice || currentMaxPrice || currentQuery || currentSort !== "newest") && (
             <button
@@ -105,7 +107,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
               className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
             >
               <RotateCcw className="h-3 w-3" />
-              Reset
+              {t.search.reset_filter}
             </button>
           )}
         </div>
@@ -113,23 +115,23 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
         {/* Sort Filter (Desktop) */}
         <div className="hidden lg:block space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Urutkan Berdasarkan
+            {t.search.sort_by}
           </label>
           <select
             value={currentSort}
             onChange={(e) => applyFilter({ sort: e.target.value })}
             className="w-full rounded-xl border border-border bg-background py-2.5 px-3 text-sm text-foreground focus:border-primary focus:outline-none transition-all cursor-pointer"
           >
-            <option value="newest">Paling Baru</option>
-            <option value="price_low">Harga: Terendah &rarr; Tertinggi</option>
-            <option value="price_high">Harga: Tertinggi &rarr; Terendah</option>
+            <option value="newest">{t.search.sort_latest}</option>
+            <option value="price_low">{t.search.sort_price_low}</option>
+            <option value="price_high">{t.search.sort_price_high}</option>
           </select>
         </div>
 
         {/* Category Filter */}
         <div className="space-y-3">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Kategori
+            {t.search.filter_category}
           </label>
           <div className="space-y-1">
             <button
@@ -140,7 +142,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
                   : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
               }`}
             >
-              <span>Semua Kategori</span>
+              <span>{t.search.all_categories}</span>
               {!currentCategory && <Check className="h-4 w-4" />}
             </button>
 
@@ -167,20 +169,20 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
         {/* Price Range Filter */}
         <div className="space-y-3 pt-2 border-t border-border/50">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Rentang Harga (Rp)
+            {t.search.price_range} (Rp)
           </label>
           <form onSubmit={handlePriceApply} className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="number"
-                placeholder="Min"
+                placeholder={t.search.min_price}
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 className="w-full rounded-lg border border-border bg-background py-2 px-3 text-xs text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none"
               />
               <input
                 type="number"
-                placeholder="Max"
+                placeholder={t.search.max_price}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
                 className="w-full rounded-lg border border-border bg-background py-2 px-3 text-xs text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none"
@@ -190,7 +192,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
               type="submit"
               className="w-full rounded-lg bg-primary/10 py-2 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all"
             >
-              Terapkan Harga
+              Apply Filter
             </button>
           </form>
         </div>

@@ -176,19 +176,19 @@ export default function Header() {
                         )}
                         <Link href="/dashboard/profile" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span>Profil Saya</span>
+                          <span>{t.header.my_profile}</span>
                         </Link>
                         {(session.user.role === "BUYER" || session.user.role === "SELLER") && (
                           <Link href="/dashboard" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                             <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
-                            <span>Dashboard Pembeli</span>
+                            <span>{t.header.buyer_dashboard}</span>
                           </Link>
                         )}
                         <button
                           onClick={handleSignOut}
                           className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
                         >
-                          <LogOut className="h-4 w-4" />
+                          <LogOut className="h-4 w-4 text-destructive" />
                           <span>{t.header.logout}</span>
                         </button>
                       </div>

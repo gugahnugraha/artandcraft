@@ -7,8 +7,7 @@ import ProductCard from "@/components/ui/ProductCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 
-// ─── 10 Promotional Hero Slides ───────────────────────────────────────────────
-const HERO_SLIDES = [
+const HERO_SLIDES_ID = [
   {
     tag: "Otentik & Handmade",
     title: "Temukan Keunikan Karya Anak Bangsa",
@@ -91,6 +90,89 @@ const HERO_SLIDES = [
   },
 ];
 
+const HERO_SLIDES_EN = [
+  {
+    tag: "Authentic & Handmade",
+    title: "Discover Unique Creations by Local Artisans",
+    subtitle: "Support local artisans and find authentic artworks from all corners of the Archipelago.",
+    image: "/hero_banner.png",
+    btnText: "Explore Now",
+    btnHref: "/search",
+  },
+  {
+    tag: "Batik & Weaving",
+    title: "The Elegance of Archipelago Textile Heritage",
+    subtitle: "Explore premium hand-painted batik and ikat woven fabrics crafted by master regional artisans.",
+    image: "/hero_banner_batik.png",
+    btnText: "Explore Batik Collection",
+    btnHref: "/search?category=batik",
+  },
+  {
+    tag: "Teak Wood Crafts",
+    title: "Natural & Timeless Teak Wood Artistry",
+    subtitle: "Transform your spaces with solid teak carvings, aesthetic trays, and eco-friendly wooden decor.",
+    image: "/hero_banner_woodcraft.png",
+    btnText: "View Woodcrafts",
+    btnHref: "/search?category=wood-craft",
+  },
+  {
+    tag: "Kasongan Pottery",
+    title: "Warm Touch of Kasongan Clay Pottery",
+    subtitle: "Own handmade ceramic mugs, vases, and pottery with calming natural clay textures.",
+    image: "/hero_banner_pottery.png",
+    btnText: "View Pottery Collection",
+    btnHref: "/search?category=pottery",
+  },
+  {
+    tag: "Artisan Jewelry",
+    title: "Charming Hand-Carved Bali Silver Jewelry",
+    subtitle: "Shine with pure silver filigree crafted by traditional Gianyar artisans for an elegant look.",
+    image: "/hero_banner_batik.png",
+    btnText: "Search Silver Jewelry",
+    btnHref: "/search?category=jewelry",
+  },
+  {
+    tag: "Manual Craftsmanship",
+    title: "Handcrafted Artistry With High Spirit",
+    subtitle: "Every item holds a story of dedication, precision, and passion from local creative hands.",
+    image: "/hero_banner_woodcraft.png",
+    btnText: "Discover Fine Arts",
+    btnHref: "/search",
+  },
+  {
+    tag: "Custom Pre-Order",
+    title: "Realize Your Dream Custom Order",
+    subtitle: "Request personalized artwork specifying your exact requirements directly from your favorite artisan.",
+    image: "/hero_banner_pottery.png",
+    btnText: "Request Custom Order",
+    btnHref: "/dashboard/custom-requests",
+  },
+  {
+    tag: "Home Decor",
+    title: "Aesthetic & Characterful Home Decor",
+    subtitle: "Bring warm bohemian ambiance with macrame knots, rattan weaving, and unique wall displays.",
+    image: "/hero_banner.png",
+    btnText: "Explore Home Decor",
+    btnHref: "/search?category=home-decor",
+  },
+  {
+    tag: "Support Local SMEs",
+    title: "Proudly Made by Indonesian SME Artisans",
+    subtitle: "Empower the local creative economy by appreciating every thread and wood carving detail.",
+    image: "/hero_banner_batik.png",
+    btnText: "Support Artisans",
+    btnHref: "/search",
+  },
+  {
+    tag: "Exclusive Gifts",
+    title: "Unforgettable & Unique Artisanal Gifts",
+    subtitle: "Find exclusive souvenirs and memorable handcrafted gifts for your loved ones' special moments.",
+    image: "/hero_banner_woodcraft.png",
+    btnText: "Find Special Gifts",
+    btnHref: "/search",
+  },
+];
+
 export default function HomeClient({ 
   categories, 
   featuredProducts, 
@@ -100,7 +182,8 @@ export default function HomeClient({
   featuredProducts: any[];
   newArrivals: any[];
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const heroSlides = language === "en" ? HERO_SLIDES_EN : HERO_SLIDES_ID;
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -108,19 +191,19 @@ export default function HomeClient({
   useEffect(() => {
     if (isPaused) return;
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, heroSlides.length]);
 
-  const slide = HERO_SLIDES[currentSlide];
+  const slide = heroSlides[currentSlide] || heroSlides[0];
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
   };
 
   return (
@@ -135,7 +218,7 @@ export default function HomeClient({
         className="relative w-full h-[450px] md:h-[540px] flex items-center justify-center overflow-hidden group"
       >
         {/* Background Images with smooth opacity fade */}
-        {HERO_SLIDES.map((s, index) => (
+        {heroSlides.map((s, index) => (
           <div
             key={index}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
@@ -201,7 +284,7 @@ export default function HomeClient({
 
         {/* Slide Counter & Dots Indicator */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-background/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-border/40 shadow-sm">
-          {HERO_SLIDES.map((_, idx) => (
+          {heroSlides.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentSlide(idx)}
@@ -212,7 +295,7 @@ export default function HomeClient({
             />
           ))}
           <span className="text-[10px] font-mono font-semibold text-foreground ml-1">
-            {currentSlide + 1}/{HERO_SLIDES.length}
+            {currentSlide + 1}/{heroSlides.length}
           </span>
         </div>
       </section>
@@ -254,17 +337,17 @@ export default function HomeClient({
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
-                Produk Pilihan Pengrajin
+                {t.home.featured_title}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Karya seni kurasi terbaik dari pengrajin berbakat Indonesia
+                {t.home.featured_subtitle}
               </p>
             </div>
             <Link 
               href="/search" 
               className="text-xs sm:text-sm font-bold text-primary hover:underline flex items-center gap-1"
             >
-              Lihat Semua <ArrowRight className="h-3.5 w-3.5" />
+              {t.home.see_all} <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
@@ -284,17 +367,17 @@ export default function HomeClient({
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
-                Karya Terbaru
+                {t.home.new_arrivals}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Produk handmade paling gres yang baru diunggah oleh para pengrajin
+                {t.home.new_arrivals_subtitle}
               </p>
             </div>
             <Link 
               href="/search?sort=latest" 
               className="text-xs sm:text-sm font-bold text-primary hover:underline flex items-center gap-1"
             >
-              Lihat Semua <ArrowRight className="h-3.5 w-3.5" />
+              {t.home.see_all} <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
