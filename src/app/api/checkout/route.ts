@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+const midtransClient = require("midtrans-client");
+
+// Initialize Snap client
+const snap = new midtransClient.Snap({
+  isProduction: process.env.MIDTRANS_IS_PRODUCTION === "true",
+  serverKey: process.env.MIDTRANS_SERVER_KEY || "",
+  clientKey: process.env.MIDTRANS_CLIENT_KEY || "",
+});
 
 const checkoutSchema = z.object({
   items: z.array(
@@ -130,7 +138,48 @@ export async function POST(req: Request) {
       return newOrder;
     });
 
-    return NextResponse.json({ success: true, orderId: order.id }, { status: 201 });
+    // 3. Generate Midtrans Snap Token
+    const midtransParams = {
+      transaction_details: {
+        order_id: order.id,
+        gross_amount: Math.round(grandTotal),
+      },
+      customer_details: {
+        first_name: shippingAddress.fullName,
+        email: session.user.email,
+        phone: shippingAddress.phoneNumber,
+      },
+      item_details: [
+        ...orderItemsData.map(item => ({
+          id: item.productId,
+          price: Math.round(item.price),
+          quantity: item.quantity,
+          name: `Produk ID: ${item.productId}`.substring(0, 50),
+        })),
+        ...(shippingCost > 0 ? [{
+          id: 'SHIPPING',
+          price: Math.round(shippingCost),
+          quantity: 1,
+          name: 'Ongkos Kirim'
+        }] : [])
+      ]
+    };
+
+    let token = "";
+    if (process.env.MIDTRANS_SERVER_KEY) {
+      try {
+        const transaction = await snap.createTransaction(midtransParams);
+        token = transaction.token;
+      } catch (midtransError: any) {
+        console.error("Midtrans Error:", midtransError.message);
+        // We can either fail the checkout or allow it and handle payment later
+        return NextResponse.json({ error: "Gagal menghubungkan ke sistem pembayaran." }, { status: 500 });
+      }
+    } else {
+      console.warn("MIDTRANS_SERVER_KEY is missing. Skipping token generation for testing.");
+    }
+
+    return NextResponse.json({ success: true, orderId: order.id, token }, { status: 201 });
   } catch (error: any) {
     console.error("Checkout Error:", error);
     if (error instanceof z.ZodError) {
