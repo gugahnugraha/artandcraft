@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { KeyRound, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
-export default function ResetPasswordPage() {
+// ─── Inner component that uses useSearchParams ────────────────────────────────
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -60,7 +61,7 @@ export default function ResetPasswordPage() {
       } else {
         setError(data.message || "Gagal mengatur ulang kata sandi.");
       }
-    } catch (err) {
+    } catch {
       setError("Terjadi kesalahan sistem.");
     } finally {
       setIsSubmitting(false);
@@ -70,7 +71,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="flex flex-1 items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-accent/20">
       <div className="w-full max-w-md space-y-8 rounded-2xl border border-border bg-card p-8 shadow-xl backdrop-blur-sm">
-        
+
         {/* Header */}
         <div className="text-center">
           <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground">
@@ -104,7 +105,7 @@ export default function ResetPasswordPage() {
           <form className="mt-8 space-y-6" onSubmit={onSubmit}>
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+                <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                   Kata Sandi Baru
                 </label>
                 <div className="relative">
@@ -123,7 +124,7 @@ export default function ResetPasswordPage() {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+                <label htmlFor="confirmPassword" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                   Konfirmasi Kata Sandi Baru
                 </label>
                 <div className="relative">
@@ -169,5 +170,20 @@ export default function ResetPasswordPage() {
 
       </div>
     </div>
+  );
+}
+
+// ─── Page shell — wraps ResetPasswordForm in Suspense ────────────────────────
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-1 items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

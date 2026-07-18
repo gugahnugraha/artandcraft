@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, Store } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, Store, Tag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
 export default async function SellerLayout({ children }: { children: React.ReactNode }) {
@@ -68,6 +68,13 @@ export default async function SellerLayout({ children }: { children: React.React
             <span className="absolute right-3 bg-primary text-primary-foreground text-[10px] px-2 py-0.5 rounded-full font-bold">
               Baru
             </span>
+          </Link>
+          <Link 
+            href="/seller/coupons" 
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            <Tag className="h-4.5 w-4.5 text-muted-foreground" />
+            Kupon & Promo
           </Link>
           <Link 
             href="/seller/settings" 

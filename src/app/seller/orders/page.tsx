@@ -154,7 +154,12 @@ export default async function SellerOrdersPage() {
                     )}
 
                     <div className="pt-4 mt-4 border-t border-border/50">
-                      <OrderStatusUpdater orderId={orderInfo.id} currentStatus={orderInfo.status} />
+                      <OrderStatusUpdater
+                        orderId={orderInfo.id}
+                        currentStatus={orderInfo.status}
+                        currentTrackingNumber={orderInfo.trackingNumber}
+                        currentCourier={orderInfo.shippingCourier}
+                      />
                     </div>
                   </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn as nextAuthSignIn } from "next-auth/react";
@@ -10,10 +10,12 @@ import { loginSchema, LoginInput } from "@/features/auth/schemas";
 import { login } from "@/features/auth/actions/login";
 import { KeyRound, Mail, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
-export default function LoginPage() {
+// ─── Inner component that uses useSearchParams ────────────────────────────────
+// Must be wrapped in <Suspense> at page level for static prerender compatibility.
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,8 +58,8 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const searchParams = new URLSearchParams(window.location.search);
-      const callbackUrl = searchParams.get("callbackUrl") || undefined;
+      const sp = new URLSearchParams(window.location.search);
+      const callbackUrl = sp.get("callbackUrl") || undefined;
 
       const res = await login(data, callbackUrl);
       if (res?.error) {
@@ -68,8 +70,6 @@ export default function LoginPage() {
         router.refresh();
       }
     } catch (err: any) {
-      // In server actions, redirect throws an error that is handled by Next.js.
-      // If it's a redirect, we shouldn't show it as an error.
       if (err.message !== "NEXT_REDIRECT") {
         setError("Terjadi kesalahan sistem saat mencoba masuk.");
         setIsSubmitting(false);
@@ -80,7 +80,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-1 items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-accent/20">
       <div className="w-full max-w-md space-y-8 rounded-2xl border border-border bg-card p-8 shadow-xl backdrop-blur-sm">
-        
+
         {/* Header */}
         <div className="text-center">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
@@ -110,7 +110,7 @@ export default function LoginPage() {
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
-            
+
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
@@ -222,5 +222,20 @@ export default function LoginPage() {
 
       </div>
     </div>
+  );
+}
+
+// ─── Page shell — wraps LoginForm in Suspense for SSG prerender compatibility ─
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-1 items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

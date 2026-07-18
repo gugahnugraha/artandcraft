@@ -159,11 +159,19 @@ export default async function OrdersPage() {
                     </span>
                   )}
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Total</p>
-                  <p className="text-base font-bold text-foreground">
-                    Rp {Number(order.grandTotal).toLocaleString("id-ID")}
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="text-base font-bold text-foreground">
+                      Rp {Number(order.grandTotal).toLocaleString("id-ID")}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/dashboard/orders/${order.id}`}
+                    className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline shrink-0"
+                  >
+                    Detail <ChevronRight className="h-3 w-3" />
+                  </Link>
                 </div>
               </div>
             </div>

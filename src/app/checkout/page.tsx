@@ -33,6 +33,13 @@ export default function CheckoutPage() {
   const [newCity, setNewCity] = useState("");
   const [newProvince, setNewProvince] = useState("");
 
+  // Coupon states
+  const [couponCode, setCouponCode] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponMsg, setCouponMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+
   const fetchRates = async (city: string, province: string) => {
     if (!city || !province || items.length === 0) return;
     setIsLoadingRates(true);
@@ -59,6 +66,40 @@ export default function CheckoutPage() {
     } finally {
       setIsLoadingRates(false);
     }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsValidatingCoupon(true);
+    setCouponMsg(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode, subtotal: getTotalPrice() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setCouponDiscount(data.discountAmount);
+        setAppliedCoupon(data.code);
+        setCouponMsg({ text: data.message, type: "success" });
+      } else {
+        setCouponDiscount(0);
+        setAppliedCoupon(null);
+        setCouponMsg({ text: data.error || "Kupon tidak valid.", type: "error" });
+      }
+    } catch {
+      setCouponMsg({ text: "Gagal menghubungi server.", type: "error" });
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponCode("");
+    setCouponDiscount(0);
+    setAppliedCoupon(null);
+    setCouponMsg(null);
   };
 
   useEffect(() => {
@@ -164,6 +205,8 @@ export default function CheckoutPage() {
           shippingCost,
           shippingCourier,
           notes,
+          couponCode: appliedCoupon || undefined,
+          discountAmount: couponDiscount || undefined,
         }),
       });
 
@@ -232,9 +275,9 @@ export default function CheckoutPage() {
     );
   }
 
-  // Calculate dynamic shipping
+  // Calculate dynamic shipping & coupon
   const shippingCost = selectedRate ? selectedRate.cost : 0;
-  const grandTotal = getTotalPrice() + shippingCost;
+  const grandTotal = Math.max(0, getTotalPrice() + shippingCost - couponDiscount);
 
   return (
     <div className="min-h-screen bg-background py-12">
@@ -417,6 +460,52 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
+              {/* Coupon Input */}
+              <div className="border-t border-border/50 pt-4 pb-2">
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between rounded-xl bg-green-50 border border-green-200 px-4 py-2.5">
+                    <div className="flex items-center gap-2 text-sm text-green-700">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                      <span className="font-mono font-bold">{appliedCoupon}</span>
+                      <span className="text-xs">diterapkan</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="text-xs text-green-600 hover:text-green-800 font-semibold underline"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Kode kupon..."
+                        className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono tracking-wider text-foreground uppercase focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={isValidatingCoupon || !couponCode.trim()}
+                        className="shrink-0 flex items-center gap-1.5 rounded-lg bg-primary/10 text-primary px-4 py-2 text-sm font-bold hover:bg-primary/20 transition-colors disabled:opacity-50"
+                      >
+                        {isValidatingCoupon ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Tag className="h-3.5 w-3.5" />}
+                        Pakai
+                      </button>
+                    </div>
+                    {couponMsg && (
+                      <p className={`text-xs px-1 ${couponMsg.type === "success" ? "text-green-600" : "text-destructive"}`}>
+                        {couponMsg.text}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-3 text-sm border-t border-border/50 pt-4 mb-6">
                 <div className="flex justify-between text-muted-foreground">
                   <span>{t.checkout.total_price} ({items.length} item)</span>
@@ -426,6 +515,15 @@ export default function CheckoutPage() {
                   <span className="flex items-center gap-1"><Truck className="h-4 w-4"/> {t.checkout.shipping_cost}</span>
                   <span>Rp {shippingCost.toLocaleString("id-ID")}</span>
                 </div>
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span className="flex items-center gap-1.5">
+                      <Tag className="h-3.5 w-3.5" />
+                      Kupon ({appliedCoupon})
+                    </span>
+                    <span>- Rp {couponDiscount.toLocaleString("id-ID")}</span>
+                  </div>
+                )}
               </div>
               
               <div className="flex justify-between items-center font-bold text-xl mb-8 border-t border-border/50 pt-4">

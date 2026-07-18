@@ -10,27 +10,64 @@ export async function PATCH(req: Request, props: { params: Promise<{ orderId: st
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { status } = await req.json();
+    const body = await req.json();
+    const { status, trackingNumber, shippingCourier } = body;
     const orderId = params.orderId;
 
     if (!orderId || !status) {
       return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
     }
 
-    // Update the order status
+    // Build update data — include tracking fields if provided
+    const updateData: Record<string, unknown> = { status };
+    if (trackingNumber !== undefined) updateData.trackingNumber = trackingNumber || null;
+    if (shippingCourier !== undefined) updateData.shippingCourier = shippingCourier || null;
+
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
-      data: { status },
+      data: updateData,
     });
 
-    // Optionally: If status is SHIPPED, create a notification for the BUYER
-    if (status === "SHIPPED") {
+    // Create tracking log entry for key transitions
+    const trackingDescriptions: Record<string, string> = {
+      PROCESSING: "Pesanan sedang dikemas oleh penjual.",
+      SHIPPED: trackingNumber
+        ? `Pesanan telah dikirim via ${shippingCourier || "kurir"}. Nomor resi: ${trackingNumber}`
+        : `Pesanan telah dikirim via ${shippingCourier || "kurir"}.`,
+    };
+
+    if (trackingDescriptions[status]) {
+      await prisma.orderTracking.create({
+        data: {
+          orderId,
+          status,
+          description: trackingDescriptions[status],
+        },
+      });
+    }
+
+    // Notify the buyer on key status transitions
+    const notifMap: Record<string, { title: string; message: string }> = {
+      PROCESSING: {
+        title: "Pesanan Diproses 📦",
+        message: `Pesanan #${updatedOrder.id.slice(-8).toUpperCase()} sedang dikemas oleh penjual.`,
+      },
+      SHIPPED: {
+        title: "Pesanan Dikirim! 🚚",
+        message: trackingNumber
+          ? `Pesanan #${updatedOrder.id.slice(-8).toUpperCase()} dikirim via ${shippingCourier}. Resi: ${trackingNumber}`
+          : `Pesanan #${updatedOrder.id.slice(-8).toUpperCase()} sedang dalam perjalanan.`,
+      },
+    };
+
+    if (notifMap[status]) {
       await prisma.notification.create({
         data: {
           userId: updatedOrder.userId,
-          title: "Pesanan Dikirim! 🚚",
-          message: `Pesanan Anda #${updatedOrder.id.slice(-8)} sedang dalam perjalanan.`,
-        }
+          title: notifMap[status].title,
+          message: notifMap[status].message,
+          link: `/dashboard/orders/${orderId}`,
+        },
       });
     }
 
