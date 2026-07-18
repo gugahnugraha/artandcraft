@@ -25,7 +25,7 @@ export async function register(data: RegisterInput) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name,
         email: email.toLowerCase(),
@@ -33,6 +33,16 @@ export async function register(data: RegisterInput) {
         role: "BUYER",
       },
     });
+
+    // Generate and send verification email
+    try {
+      const { generateVerificationToken } = await import("@/lib/tokens");
+      const { sendVerificationEmail } = await import("@/lib/mail");
+      const tokenObj = await generateVerificationToken(user.email);
+      await sendVerificationEmail(user.email, tokenObj.token);
+    } catch (mailErr) {
+      console.error("Failed to send verification email on registration:", mailErr);
+    }
   } catch (error) {
     console.error("Registration database error:", error);
     return { error: "Terjadi kesalahan saat menyimpan data ke database" };

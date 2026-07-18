@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import ProductReviews from "./ProductReviews";
+import WishlistButton from "@/components/ui/WishlistButton";
 import ProductGallery from "./ProductGallery";
 import AddToCartButton from "./AddToCartButton";
 import { ShieldCheck, MapPin, Star, Package, Scale, Maximize, Tag, Store, ArrowLeft, Share2 } from "lucide-react";
@@ -254,7 +256,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 <div className="flex-1">
                   <AddToCartButton product={product} />
                 </div>
-                <button className="rounded-xl border border-border bg-card px-4 py-3.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shrink-0">
+                <WishlistButton productId={product.id} showText={false} className="shrink-0 h-[52px] w-[52px] !p-0" />
+                <button className="rounded-xl border border-border bg-card h-[52px] w-[52px] flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shrink-0">
                   <Share2 className="h-4 w-4" />
                 </button>
               </div>
@@ -308,6 +311,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Product Reviews */}
+          <div className="mt-12 bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
+            <h2 className="font-serif text-2xl font-bold text-foreground mb-8 border-b border-border pb-4">
+              Ulasan Pembeli
+            </h2>
+            <ProductReviews productId={product.id} />
           </div>
 
         </div>

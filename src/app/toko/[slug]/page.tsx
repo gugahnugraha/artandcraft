@@ -2,11 +2,38 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { Star, MapPin, Heart, ShoppingBag, ShieldCheck, Mail, Database } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+const BASE_URL = process.env.NEXTAUTH_URL || "https://artandcraft.id";
 
 interface PageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const seller = await prisma.sellerProfile.findUnique({
+      where: { storeSlug: slug.toLowerCase() },
+    });
+    if (!seller) return { title: "Toko Tidak Ditemukan | ArtAndCraft.id" };
+    return {
+      title: `${seller.storeName} | Toko Kerajinan di ArtAndCraft.id`,
+      description: seller.storeDescription?.slice(0, 160) || `Temukan produk kerajinan tangan otentik dari ${seller.storeName} di ArtAndCraft.id.`,
+      openGraph: {
+        title: `${seller.storeName} | ArtAndCraft.id`,
+        description: seller.storeDescription?.slice(0, 160) || `Pengrajin UMKM lokal: ${seller.storeName}`,
+        images: seller.storeBanner ? [{ url: seller.storeBanner }] : [],
+        type: "website",
+        url: `${BASE_URL}/toko/${seller.storeSlug}`,
+      },
+      alternates: { canonical: `${BASE_URL}/toko/${seller.storeSlug}` },
+    };
+  } catch {
+    return { title: "Toko | ArtAndCraft.id" };
+  }
 }
 
 export const dynamic = "force-dynamic";
@@ -227,7 +254,7 @@ export default async function StorefrontPage({ params }: PageProps) {
                         </span>
                         
                         <h3 className="font-semibold text-foreground text-xs line-clamp-2 min-h-[36px] mb-2 group-hover:text-primary transition-colors">
-                          <Link href="#">{prod.title}</Link>
+                          <Link href={`/produk/${prod.slug}`}>{prod.title}</Link>
                         </h3>
 
                         <div className="mt-auto pt-3 border-t border-border/40 flex justify-between items-end">

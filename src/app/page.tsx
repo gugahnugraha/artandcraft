@@ -1,5 +1,35 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import HomeClient from "@/components/home/HomeClient";
+
+const BASE_URL = process.env.NEXTAUTH_URL || "https://artandcraft.id";
+
+export const metadata: Metadata = {
+  title: "ArtAndCraft.id — Marketplace Kerajinan Tangan & Produk Seni Indonesia",
+  description:
+    "Temukan kerajinan tangan otentik, batik, kayu, keramik, perhiasan, dan karya pengrajin UMKM lokal terbaik Indonesia. Belanja langsung dari pengrajinnya di ArtAndCraft.id.",
+  keywords: [
+    "kerajinan tangan", "marketplace UMKM", "batik", "wayang", "gerabah",
+    "perhiasan handmade", "kayu jati", "macrame", "resin art", "souvenir pernikahan",
+  ],
+  metadataBase: new URL(BASE_URL),
+  openGraph: {
+    type: "website",
+    url: BASE_URL,
+    title: "ArtAndCraft.id — Marketplace Kerajinan Tangan Indonesia",
+    description:
+      "Temukan kerajinan tangan otentik dan produk seni dari pengrajin UMKM lokal terbaik Indonesia.",
+    siteName: "ArtAndCraft.id",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ArtAndCraft.id — Marketplace Kerajinan Tangan Indonesia",
+    description:
+      "Belanja produk seni dan kerajinan tangan UMKM lokal pilihan dari seluruh Indonesia.",
+  },
+  alternates: { canonical: BASE_URL },
+  robots: { index: true, follow: true },
+};
 
 // ─── Categories ──────────────────────────────────────────────────────────────
 const categories = [

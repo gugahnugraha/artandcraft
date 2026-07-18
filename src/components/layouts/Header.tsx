@@ -6,6 +6,7 @@ import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard,
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/store/cart";
+import NotificationDropdown from "@/components/ui/NotificationDropdown";
 
 export default function Header() {
   const { data: session, status } = useSession();
@@ -32,6 +33,11 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background border-b border-border shadow-sm">
+      {session && !session.user.emailVerified && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 py-2 px-4 text-center text-xs text-amber-800 dark:text-amber-300 font-medium">
+          Email Anda ({session.user.email}) belum diverifikasi. Silakan cek kotak masuk Anda untuk melakukan verifikasi.
+        </div>
+      )}
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         
         {/* TOP ROW: Logo, Search, Actions */}
@@ -111,7 +117,9 @@ export default function Header() {
             {status === "loading" ? (
               <div className="h-8 w-8 rounded-full bg-muted animate-pulse mx-2" />
             ) : session ? (
-              <div className="relative mx-1">
+              <div className="flex items-center gap-1 mx-1">
+                <NotificationDropdown />
+                <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 rounded-full p-2 text-foreground hover:bg-muted transition-colors"
@@ -154,8 +162,14 @@ export default function Header() {
                         )}
                         <Link href="#" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span>{t.header.my_profile}</span>
+                          <span>Profil Saya</span>
                         </Link>
+                        {(session.user.role === "BUYER" || session.user.role === "SELLER") && (
+                          <Link href="/dashboard" onClick={() => setDropdownOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                            <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+                            <span>Dashboard Pembeli</span>
+                          </Link>
+                        )}
                         <button
                           onClick={handleSignOut}
                           className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors text-left"
@@ -168,6 +182,7 @@ export default function Header() {
                   </>
                 )}
               </div>
+            </div>
             ) : (
               <Link href="/login" className="hidden md:flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-foreground hover:bg-muted transition-all mx-1">
                 {t.header.login}

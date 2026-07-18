@@ -12,17 +12,96 @@ declare global {
 }
 import { useRouter } from "next/navigation";
 import { CheckCircle2, CreditCard, MapPin, Truck, ShieldCheck, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CheckoutPage() {
+  const { t } = useLanguage();
   const { items, getTotalPrice, clearCart } = useCart();
   const [isMounted, setIsMounted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | "new">("new");
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
   const router = useRouter();
+
+  // Shipping cost states
+  const [shippingRates, setShippingRates] = useState<any[]>([]);
+  const [selectedRate, setSelectedRate] = useState<any | null>(null);
+  const [isLoadingRates, setIsLoadingRates] = useState(false);
+  const [newCity, setNewCity] = useState("");
+  const [newProvince, setNewProvince] = useState("");
+
+  const fetchRates = async (city: string, province: string) => {
+    if (!city || !province || items.length === 0) return;
+    setIsLoadingRates(true);
+    setSelectedRate(null);
+    try {
+      const weight = items.reduce((acc, item) => acc + item.quantity * 500, 0);
+      const res = await fetch("/api/shipping/calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ city, province, weight }),
+      });
+      const data = await res.json();
+      if (res.ok && data.rates) {
+        setShippingRates(data.rates);
+        if (data.rates.length > 0) {
+          setSelectedRate(data.rates[0]);
+        }
+      } else {
+        setShippingRates([]);
+      }
+    } catch (err) {
+      console.error("Rates fetch error:", err);
+      setShippingRates([]);
+    } finally {
+      setIsLoadingRates(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedAddressId !== "new" && addresses.length > 0) {
+      const addr = addresses.find(a => a.id === selectedAddressId);
+      if (addr) {
+        fetchRates(addr.city, addr.province);
+      }
+    } else {
+      setShippingRates([]);
+      setSelectedRate(null);
+    }
+  }, [selectedAddressId, addresses]);
+
+  useEffect(() => {
+    if (selectedAddressId === "new" && newCity.trim().length > 2 && newProvince.trim().length > 2) {
+      const timer = setTimeout(() => {
+        fetchRates(newCity, newProvince);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [newCity, newProvince, selectedAddressId]);
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // Fetch addresses
+    fetch("/api/user/addresses")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.addresses) {
+          setAddresses(data.addresses);
+          const defaultAddr = data.addresses.find((a: any) => a.isDefault);
+          if (defaultAddr) {
+            setSelectedAddressId(defaultAddr.id);
+          } else if (data.addresses.length > 0) {
+            setSelectedAddressId(data.addresses[0].id);
+          }
+        }
+        setIsLoadingAddresses(false);
+      })
+      .catch(() => setIsLoadingAddresses(false));
+
     // If cart is empty and not successful yet, maybe redirect back to cart
     if (isMounted && items.length === 0 && !isSuccess) {
       router.push("/cart");
@@ -35,16 +114,44 @@ export default function CheckoutPage() {
     setErrorMessage(null);
     
     const formData = new FormData(e.currentTarget);
-    const shippingAddress = {
-      fullName: formData.get("fullName") as string,
-      phoneNumber: formData.get("phoneNumber") as string,
-      street: formData.get("street") as string,
-      city: formData.get("city") as string,
-      province: formData.get("province") as string,
-      postalCode: formData.get("postalCode") as string,
-    };
+    
+    let shippingAddress;
+    if (selectedAddressId !== "new") {
+      const selected = addresses.find(a => a.id === selectedAddressId);
+      if (!selected) {
+        setErrorMessage("Alamat yang dipilih tidak valid.");
+        setIsProcessing(false);
+        return;
+      }
+      shippingAddress = {
+        fullName: selected.fullName,
+        phoneNumber: selected.phoneNumber,
+        street: selected.street,
+        city: selected.city,
+        province: selected.province,
+        postalCode: selected.postalCode,
+      };
+    } else {
+      shippingAddress = {
+        fullName: formData.get("fullName") as string,
+        phoneNumber: formData.get("phoneNumber") as string,
+        street: formData.get("street") as string,
+        city: formData.get("city") as string,
+        province: formData.get("province") as string,
+        postalCode: formData.get("postalCode") as string,
+      };
+    }
+
+    if (!selectedRate) {
+      setErrorMessage(t.checkout.courier_selection);
+      setIsProcessing(false);
+      return;
+    }
+
+    const notes = formData.get("notes") as string;
     const paymentMethod = formData.get("payment") as string;
-    const shippingCost = items.length > 0 ? 25000 : 0;
+    const shippingCost = selectedRate.cost;
+    const shippingCourier = selectedRate.name;
 
     try {
       const res = await fetch("/api/checkout", {
@@ -55,6 +162,8 @@ export default function CheckoutPage() {
           shippingAddress,
           paymentMethod,
           shippingCost,
+          shippingCourier,
+          notes,
         }),
       });
 
@@ -108,10 +217,10 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-background py-20 flex flex-col items-center px-4">
         <CheckCircle2 className="h-20 w-20 text-green-500 mb-6 animate-bounce" />
         <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4 text-center">
-          Pembayaran Berhasil!
+          {t.checkout.success_title}
         </h1>
         <p className="text-muted-foreground mb-8 text-center max-w-md">
-          Terima kasih telah berbelanja di Art and Craft. Pesanan Anda telah diteruskan kepada pengrajin terkait dan akan segera diproses.
+          {t.checkout.success_desc}
         </p>
         <Link 
           href="/" 
@@ -123,8 +232,8 @@ export default function CheckoutPage() {
     );
   }
 
-  // Calculate mock shipping
-  const shippingCost = items.length > 0 ? 25000 : 0;
+  // Calculate dynamic shipping
+  const shippingCost = selectedRate ? selectedRate.cost : 0;
   const grandTotal = getTotalPrice() + shippingCost;
 
   return (
@@ -137,7 +246,7 @@ export default function CheckoutPage() {
         strategy="lazyOnload"
       />
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <h1 className="font-serif text-3xl font-bold text-foreground mb-8">Checkout</h1>
+        <h1 className="font-serif text-3xl font-bold text-foreground mb-8">{t.checkout.title}</h1>
 
         <form onSubmit={handlePayment} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
@@ -147,42 +256,127 @@ export default function CheckoutPage() {
             {/* Shipping Address */}
             <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
               <h2 className="font-bold text-lg text-foreground mb-4 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-primary" /> Alamat Pengiriman
+                <MapPin className="h-5 w-5 text-primary" /> {t.checkout.shipping_address}
               </h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Nama Lengkap</label>
-                  <input name="fullName" required type="text" className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="Budi Santoso" />
+
+              {isLoadingAddresses ? (
+                <div className="flex justify-center p-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Nomor Telepon</label>
-                  <input name="phoneNumber" required type="tel" className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="081234567890" />
+              ) : (
+                <div className="space-y-4">
+                  {addresses.length > 0 && (
+                    <div>
+                      <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">{t.checkout.saved_address}</label>
+                      <select 
+                        value={selectedAddressId}
+                        onChange={(e) => setSelectedAddressId(e.target.value)}
+                        className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
+                      >
+                        {addresses.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.label} - {a.fullName} ({a.street}, {a.city})
+                          </option>
+                        ))}
+                        <option value="new">+ {t.checkout.new_address}</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {selectedAddressId === "new" && (
+                    <div className="space-y-4 pt-2 border-t border-border mt-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">{t.checkout.fullName}</label>
+                        <input name="fullName" required type="text" className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="Budi Santoso" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">{t.checkout.phoneNumber}</label>
+                        <input name="phoneNumber" required type="tel" className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="081234567890" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">{t.checkout.street}</label>
+                        <textarea name="street" required rows={2} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="Jl. Merdeka No.1, RT/RW 01/02..." />
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">{t.checkout.city}</label>
+                          <input name="city" required type="text" value={newCity} onChange={(e) => setNewCity(e.target.value)} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="Jakarta Selatan" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">{t.checkout.province}</label>
+                          <input name="province" required type="text" value={newProvince} onChange={(e) => setNewProvince(e.target.value)} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="DKI Jakarta" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">{t.checkout.postalCode}</label>
+                          <input name="postalCode" required type="text" className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="12345" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Alamat Lengkap (Jalan)</label>
-                  <textarea name="street" required rows={2} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="Jl. Merdeka No.1, RT/RW 01/02..." />
+              )}
+            </div>
+
+            {/* Courier Selection Selector */}
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+              <h2 className="font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                <Truck className="h-5 w-5 text-primary" /> {t.checkout.courier_selection}
+              </h2>
+              
+              {isLoadingRates ? (
+                <div className="flex flex-col items-center justify-center py-6 gap-2">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <p className="text-xs text-muted-foreground">{t.checkout.loading_courier}</p>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Kota</label>
-                    <input name="city" required type="text" className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="Jakarta Selatan" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Provinsi</label>
-                    <input name="province" required type="text" className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="DKI Jakarta" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Kode Pos</label>
-                    <input name="postalCode" required type="text" className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none" placeholder="12345" />
-                  </div>
+              ) : shippingRates.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2 italic text-center">
+                  {t.checkout.select_courier}
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {shippingRates.map((rate, idx) => {
+                    const isSelected = selectedRate?.name === rate.name;
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedRate(rate)}
+                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                          isSelected
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-border hover:border-muted-foreground/30 bg-background"
+                        }`}
+                      >
+                        <div>
+                          <p className="font-bold text-sm text-foreground">{rate.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Estimasi: {rate.etd}</p>
+                        </div>
+                        <p className="font-serif font-black text-primary text-base mt-3">
+                          Rp {rate.cost.toLocaleString("id-ID")}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
+              )}
+            </div>
+
+            {/* Notes to Seller */}
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+              <h2 className="font-bold text-lg text-foreground mb-2 flex items-center gap-2">
+                {t.checkout.notes}
+              </h2>
+              <textarea 
+                name="notes" 
+                rows={2} 
+                className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none resize-none" 
+                placeholder={t.checkout.notes_placeholder} 
+              />
             </div>
 
             {/* Payment Method (Mock) */}
             <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
               <h2 className="font-bold text-lg text-foreground mb-4 flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-primary" /> Metode Pembayaran
+                <CreditCard className="h-5 w-5 text-primary" /> {t.checkout.payment_method}
               </h2>
               <div className="space-y-3">
                 <label className="flex items-center gap-3 p-4 rounded-xl border border-primary bg-primary/5 cursor-pointer">
@@ -207,7 +401,7 @@ export default function CheckoutPage() {
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-5">
             <div className="bg-card rounded-2xl border border-border p-6 shadow-sm sticky top-24">
-              <h2 className="font-bold text-lg text-foreground mb-6">Ringkasan Pesanan</h2>
+              <h2 className="font-bold text-lg text-foreground mb-6">{t.checkout.order_summary}</h2>
               
               <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2 hide-scrollbar">
                 {items.map(item => (
@@ -225,17 +419,17 @@ export default function CheckoutPage() {
 
               <div className="space-y-3 text-sm border-t border-border/50 pt-4 mb-6">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Subtotal ({items.length} item)</span>
+                  <span>{t.checkout.total_price} ({items.length} item)</span>
                   <span>Rp {getTotalPrice().toLocaleString("id-ID")}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span className="flex items-center gap-1"><Truck className="h-4 w-4"/> Ongkos Kirim</span>
+                  <span className="flex items-center gap-1"><Truck className="h-4 w-4"/> {t.checkout.shipping_cost}</span>
                   <span>Rp {shippingCost.toLocaleString("id-ID")}</span>
                 </div>
               </div>
               
               <div className="flex justify-between items-center font-bold text-xl mb-8 border-t border-border/50 pt-4">
-                <span>Total Bayar</span>
+                <span>{t.checkout.grand_total}</span>
                 <span className="text-primary">Rp {grandTotal.toLocaleString("id-ID")}</span>
               </div>
               
@@ -248,13 +442,13 @@ export default function CheckoutPage() {
               
               <button 
                 type="submit"
-                disabled={isProcessing || items.length === 0}
+                disabled={isProcessing || items.length === 0 || !selectedRate}
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-4 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-md disabled:opacity-50"
               >
                 {isProcessing ? (
                   <><Loader2 className="h-5 w-5 animate-spin" /> Memproses...</>
                 ) : (
-                  <><ShieldCheck className="h-5 w-5" /> Bayar Sekarang</>
+                  <><ShieldCheck className="h-5 w-5" /> {t.checkout.pay_now}</>
                 )}
               </button>
               

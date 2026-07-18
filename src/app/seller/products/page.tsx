@@ -60,7 +60,7 @@ export default async function SellerProductsPage() {
 
           <div className="flex gap-3">
             <Link
-              href="#"
+              href="/seller"
               className="flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
             >
               <LayoutDashboard className="h-4 w-4" />

@@ -31,16 +31,20 @@ enum OrderStatus {
   REFUNDED
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTH MODELS
+// ─────────────────────────────────────────────────────────────────────────────
+
 model User {
-  id            String          @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String          @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
-  password      String?         // Hashed password
-  role          Role            @default(BUYER)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  password      String?   // Hashed password
+  role          Role      @default(BUYER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   accounts      Account[]
   sessions      Session[]
@@ -50,6 +54,8 @@ model User {
   carts         Cart[]
   orders        Order[]
   notifications Notification[]
+  addresses     Address[]
+  storeFollows  StoreFollower[]
 }
 
 model Account {
@@ -87,6 +93,10 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// STORE & SELLER
+// ─────────────────────────────────────────────────────────────────────────────
+
 model SellerProfile {
   id               String    @id @default(cuid())
   userId           String    @unique
@@ -95,15 +105,36 @@ model SellerProfile {
   storeLogo        String?
   storeBanner      String?
   storeDescription String?
+  storePolicy      String?   @db.Text  // Return policy, custom order rules, etc.
+  socialLinks      Json?               // { instagram: "", facebook: "", tiktok: "" }
+  vacationMode     Boolean   @default(false)
   storeRating      Float     @default(0.0)
   followersCount   Int       @default(0)
+  isVerified       Boolean   @default(false)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   products         Product[]
   coupons          Coupon[]
+  followers        StoreFollower[]
 }
+
+model StoreFollower {
+  id        String   @id @default(cuid())
+  userId    String
+  storeId   String
+  createdAt DateTime @default(now())
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store SellerProfile @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, storeId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CATEGORIES
+// ─────────────────────────────────────────────────────────────────────────────
 
 model Category {
   id            String        @id @default(cuid())
@@ -111,6 +142,9 @@ model Category {
   slug          String        @unique
   description   String?
   icon          String?
+  image         String?
+  sortOrder     Int           @default(0)
+  isActive      Boolean       @default(true)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   subcategories Subcategory[]
@@ -123,6 +157,8 @@ model Subcategory {
   name        String
   slug        String    @unique
   description String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -130,42 +166,112 @@ model Subcategory {
   products    Product[]
 }
 
-model Product {
-  id            String        @id @default(cuid())
-  sellerId      String
-  categoryId    String
-  subcategoryId String?
-  title         String
-  slug          String        @unique
-  description   String        @db.Text
-  price         Decimal       @db.Decimal(12, 2)
-  discount      Decimal       @default(0.0) @db.Decimal(5, 2)
-  stock         Int           @default(0)
-  weight        Float         // in grams
-  dimensions    String?       // W x H x L formatted or JSON
-  sku           String?       @unique
-  photos        String[]      // Array of URLs
-  video         String?       // Video URL
-  digitalFile   String?       // For future use
-  status        ProductStatus @default(DRAFT)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+// ─────────────────────────────────────────────────────────────────────────────
+// PRODUCTS
+// ─────────────────────────────────────────────────────────────────────────────
 
-  seller        SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  category      Category      @relation(fields: [categoryId], references: [id])
-  subcategory   Subcategory?  @relation(fields: [subcategoryId], references: [id])
+model Product {
+  id              String        @id @default(cuid())
+  sellerId        String
+  categoryId      String
+  subcategoryId   String?
+  title           String
+  slug            String        @unique
+  description     String        @db.Text
+  price           Decimal       @db.Decimal(12, 2)
+  discount        Decimal       @default(0.0) @db.Decimal(5, 2)
+  stock           Int           @default(0)
+  weight          Float         // in grams
+  dimensions      String?       // W x H x L formatted or JSON
+  sku             String?       @unique
+  photos          String[]      // Array of URLs
+  video           String?       // Video URL
+  digitalFile     String?       // For future use
+  status          ProductStatus @default(DRAFT)
+  isFeatured      Boolean       @default(false)
+  viewCount       Int           @default(0)
+  // SEO fields
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  seller        SellerProfile    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  category      Category         @relation(fields: [categoryId], references: [id])
+  subcategory   Subcategory?     @relation(fields: [subcategoryId], references: [id])
   reviews       Review[]
   wishlistItems WishlistItem[]
   cartItems     CartItem[]
   orderItems    OrderItem[]
+  variants      ProductVariant[]
+  tags          ProductTag[]
 }
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  name      String   // e.g. "Warna", "Ukuran"
+  value     String   // e.g. "Merah", "XL"
+  stock     Int      @default(0)
+  price     Decimal? @db.Decimal(12, 2) // If different from base price
+  sku       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id       String       @id @default(cuid())
+  name     String       @unique
+  slug     String       @unique
+  products ProductTag[]
+}
+
+model ProductTag {
+  productId String
+  tagId     String
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([productId, tagId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUYER: ADDRESS BOOK
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  label       String   @default("Rumah") // e.g. "Kantor", "Rumah"
+  fullName    String
+  phoneNumber String
+  street      String
+  city        String
+  province    String
+  postalCode  String
+  country     String   @default("Indonesia")
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REVIEWS
+// ─────────────────────────────────────────────────────────────────────────────
 
 model Review {
   id        String   @id @default(cuid())
   userId    String
   productId String
+  orderId   String?
   rating    Int      // 1 to 5
   comment   String?  @db.Text
+  images    String[] @default([]) // Buyer photo reviews
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -175,11 +281,15 @@ model Review {
   @@unique([userId, productId])
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// WISHLIST & CART
+// ─────────────────────────────────────────────────────────────────────────────
+
 model Wishlist {
-  id        String         @id @default(cuid())
-  userId    String         @unique
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id        String       @id @default(cuid())
+  userId    String       @unique
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
   user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   items WishlistItem[]
@@ -221,51 +331,73 @@ model CartItem {
   @@unique([cartId, productId])
 }
 
-model Order {
-  id             String      @id @default(cuid())
-  userId         String
-  status         OrderStatus @default(PENDING)
-  totalAmount    Decimal     @db.Decimal(12, 2)
-  shippingCost   Decimal     @db.Decimal(12, 2)
-  discountAmount Decimal     @default(0.0) @db.Decimal(12, 2)
-  grandTotal     Decimal     @db.Decimal(12, 2)
-  paymentMethod  String?
-  paymentStatus  String      @default("unpaid")
-  paymentInvoice String?     @unique
-  shippingCourier String?
-  trackingNumber String?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+// ─────────────────────────────────────────────────────────────────────────────
+// ORDERS
+// ─────────────────────────────────────────────────────────────────────────────
 
-  user            User            @relation(fields: [userId], references: [id])
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  status          OrderStatus @default(PENDING)
+  totalAmount     Decimal     @db.Decimal(12, 2)
+  shippingCost    Decimal     @db.Decimal(12, 2)
+  discountAmount  Decimal     @default(0.0) @db.Decimal(12, 2)
+  grandTotal      Decimal     @db.Decimal(12, 2)
+  paymentMethod   String?
+  paymentStatus   String      @default("unpaid")
+  paymentInvoice  String?     @unique
+  shippingCourier String?
+  trackingNumber  String?
+  notes           String?     // Buyer notes to seller
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user            User              @relation(fields: [userId], references: [id])
   shippingAddress ShippingAddress?
   items           OrderItem[]
+  tracking        OrderTracking[]
 }
 
 model OrderItem {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   orderId   String
   productId String
   quantity  Int
-  price     Decimal  @db.Decimal(12, 2)
+  price     Decimal @db.Decimal(12, 2)
+  variantId String? // reference to ProductVariant if selected
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
 }
 
 model ShippingAddress {
-  id         String   @id @default(cuid())
-  orderId    String   @unique
-  fullName   String
+  id          String  @id @default(cuid())
+  orderId     String  @unique
+  fullName    String
   phoneNumber String
-  street     String
-  city       String
-  province   String
-  postalCode String
-  country    String   @default("Indonesia")
+  street      String
+  city        String
+  province    String
+  postalCode  String
+  country     String  @default("Indonesia")
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
+
+model OrderTracking {
+  id          String   @id @default(cuid())
+  orderId     String
+  status      String   // e.g. "Pesanan Diterima", "Sedang Dikemas", "Dalam Perjalanan"
+  description String?
+  location    String?
+  createdAt   DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROMOTIONS
+// ─────────────────────────────────────────────────────────────────────────────
 
 model Coupon {
   id              String         @id @default(cuid())
@@ -274,6 +406,8 @@ model Coupon {
   discountPercent Decimal?       @db.Decimal(5, 2)
   discountValue   Decimal?       @db.Decimal(12, 2)
   minSpend        Decimal        @default(0.0) @db.Decimal(12, 2)
+  maxUsage        Int?
+  usedCount       Int            @default(0)
   active          Boolean        @default(true)
   expiresAt       DateTime?
   createdAt       DateTime       @default(now())
@@ -282,11 +416,16 @@ model Coupon {
   seller          SellerProfile? @relation(fields: [sellerProfileId], references: [id], onDelete: Cascade)
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
 model Notification {
   id        String   @id @default(cuid())
   userId    String
   title     String
   message   String
+  link      String?  // Deep-link to relevant page
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 

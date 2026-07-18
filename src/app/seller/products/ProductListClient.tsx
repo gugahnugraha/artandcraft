@@ -210,14 +210,13 @@ export default function ProductListClient({ initialProducts }: { initialProducts
 
                   {/* Action buttons */}
                   <div className="flex items-center gap-2 border-t border-border/40 pt-4 mt-4 text-xs font-semibold">
-                    <button
-                      disabled
-                      className="flex-1 flex items-center justify-center gap-1 rounded-md border border-border bg-card py-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      title="Edit (Milestone Selanjutnya)"
+                    <Link
+                      href={`/seller/products/${prod.id}/edit`}
+                      className="flex-1 flex items-center justify-center gap-1 rounded-md border border-border bg-card py-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-center"
                     >
                       <Edit2 className="h-3.5 w-3.5" />
                       <span>Edit</span>
-                    </button>
+                    </Link>
                     
                     <button
                       onClick={() => handleDelete(prod.id)}

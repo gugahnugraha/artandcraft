@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { calculateShippingRates } from "@/services/shipping/shipping";
 const midtransClient = require("midtrans-client");
 
 // Initialize Snap client
@@ -29,6 +30,8 @@ const checkoutSchema = z.object({
   }),
   paymentMethod: z.string(),
   shippingCost: z.number(),
+  shippingCourier: z.string(),
+  notes: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -41,15 +44,21 @@ export async function POST(req: Request) {
     const body = await req.json();
     const validatedData = checkoutSchema.parse(body);
 
-    const { items, shippingAddress, paymentMethod, shippingCost } = validatedData;
+    const { items, shippingAddress, paymentMethod, shippingCost, shippingCourier, notes } = validatedData;
 
     if (items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
+    // Verify shipping cost securely on server side
+    const totalWeight = items.reduce((acc, item) => acc + item.quantity * 500, 0);
+    const calculatedRates = await calculateShippingRates(shippingAddress.city, shippingAddress.province, totalWeight);
+    const matchedRate = calculatedRates.find(r => r.name === shippingCourier);
+    const verifiedShippingCost = matchedRate ? matchedRate.cost : (calculatedRates[0]?.cost || shippingCost);
+
     // 1. Calculate totals securely by verifying prices against the database
     let totalAmount = 0;
-    const orderItemsData = [];
+    const orderItemsData: { productId: string; quantity: number; price: number }[] = [];
 
     for (const item of items) {
       const product = await prisma.product.findUnique({
@@ -81,7 +90,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const grandTotal = totalAmount + shippingCost;
+    const grandTotal = totalAmount + verifiedShippingCost;
 
     // 2. Create the Order in a database transaction
     const order = await prisma.$transaction(async (tx) => {
@@ -91,11 +100,12 @@ export async function POST(req: Request) {
           userId: session.user.id,
           status: "AWAITING_PAYMENT",
           totalAmount,
-          shippingCost,
-          grandTotal,
+          shippingCost: verifiedShippingCost,
+          grandTotal: totalAmount + verifiedShippingCost,
           paymentMethod,
           paymentStatus: "unpaid",
-          shippingCourier: "REGULAR", // Mock courier
+          shippingCourier,
+          notes,
           items: {
             create: orderItemsData,
           },
@@ -138,6 +148,7 @@ export async function POST(req: Request) {
       return newOrder;
     });
 
+
     // 3. Generate Midtrans Snap Token
     const midtransParams = {
       transaction_details: {
@@ -156,11 +167,11 @@ export async function POST(req: Request) {
           quantity: item.quantity,
           name: `Produk ID: ${item.productId}`.substring(0, 50),
         })),
-        ...(shippingCost > 0 ? [{
+        ...(verifiedShippingCost > 0 ? [{
           id: 'SHIPPING',
-          price: Math.round(shippingCost),
+          price: Math.round(verifiedShippingCost),
           quantity: 1,
-          name: 'Ongkos Kirim'
+          name: `Ongkir (${shippingCourier})`.substring(0, 50)
         }] : [])
       ]
     };
@@ -183,7 +194,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Checkout Error:", error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid request data", details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: "Invalid request data", details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

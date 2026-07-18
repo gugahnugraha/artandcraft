@@ -124,7 +124,7 @@ export default function SellerSetupPage() {
           <Link href="/" className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-all text-center">
             Kembali ke Beranda
           </Link>
-          <Link href="#" className="rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-all text-center flex items-center justify-center gap-1.5">
+          <Link href="/seller" className="rounded-full border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-all text-center flex items-center justify-center gap-1.5">
             Dashboard Penjual <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "./auth.config";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { loginSchema } from "@/features/auth/schemas";
 import { Role } from "@prisma/client";
@@ -16,6 +17,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.role = user.role;
         token.id = user.id ?? "";
+        token.emailVerified = user.emailVerified;
       }
       
       // Handle active session updates (e.g. role upgraded to SELLER)
@@ -29,11 +31,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.role = token.role as Role;
         session.user.id = token.id as string;
+        session.user.emailVerified = token.emailVerified as Date | null;
       }
       return session;
     },
   },
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // Allow linking of accounts with same email
+      allowDangerousEmailAccountLinking: true,
+    }),
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = loginSchema.safeParse(credentials);
@@ -54,6 +63,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: user.email,
             image: user.image,
             role: user.role,
+            emailVerified: user.emailVerified,
           };
         }
 

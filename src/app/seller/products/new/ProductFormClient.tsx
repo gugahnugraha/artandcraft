@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema, ProductInput } from "@/features/products/schemas";
 import { createProduct } from "@/features/products/actions/create-product";
+import { updateProduct } from "@/features/products/actions/update-product";
 import {
   FileText,
   DollarSign,
@@ -36,12 +37,34 @@ interface Category {
   subcategories: Subcategory[];
 }
 
-export default function ProductFormClient({ categories }: { categories: Category[] }) {
+interface InitialProduct {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  discount: number;
+  stock: number;
+  weight: number;
+  dimensions: string | null;
+  sku: string | null;
+  categoryId: string;
+  subcategoryId: string | null;
+  photos: string[];
+  status: ProductStatus;
+}
+
+export default function ProductFormClient({ 
+  categories, 
+  initialProduct 
+}: { 
+  categories: Category[]; 
+  initialProduct?: InitialProduct;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>(initialProduct?.photos || []);
 
   const {
     register,
@@ -52,18 +75,18 @@ export default function ProductFormClient({ categories }: { categories: Category
   } = useForm<ProductInput>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      price: 0,
-      discount: 0,
-      stock: 1,
-      weight: 100,
-      dimensions: "",
-      sku: "",
-      categoryId: "",
-      subcategoryId: "",
-      photos: [],
-      status: ProductStatus.ACTIVE,
+      title: initialProduct?.title || "",
+      description: initialProduct?.description || "",
+      price: initialProduct?.price || 0,
+      discount: initialProduct?.discount || 0,
+      stock: initialProduct?.stock || 1,
+      weight: initialProduct?.weight || 100,
+      dimensions: initialProduct?.dimensions || "",
+      sku: initialProduct?.sku || "",
+      categoryId: initialProduct?.categoryId || "",
+      subcategoryId: initialProduct?.subcategoryId || "",
+      photos: initialProduct?.photos || [],
+      status: initialProduct?.status || ProductStatus.ACTIVE,
     },
   });
 
@@ -115,7 +138,10 @@ export default function ProductFormClient({ categories }: { categories: Category
     setIsSubmitting(true);
 
     try {
-      const res = await createProduct(data);
+      const res = initialProduct 
+        ? await updateProduct(initialProduct.id, data) 
+        : await createProduct(data);
+
       if (res?.error) {
         setError(res.error);
         setIsSubmitting(false);
@@ -406,7 +432,7 @@ export default function ProductFormClient({ categories }: { categories: Category
                   <span>Menyimpan Produk...</span>
                 </>
               ) : (
-                <span>Terbitkan Produk</span>
+                <span>{initialProduct ? "Simpan Perubahan" : "Terbitkan Produk"}</span>
               )}
             </button>
           </div>

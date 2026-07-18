@@ -105,6 +105,38 @@ export default function HomeClient({
         </section>
 
         {/* ════════════════════════════════════════════════════════
+            EDITORS' PICKS BANNER (Koleksi Pilihan Nusantara)
+            ════════════════════════════════════════════════════════ */}
+        <section className="mb-16">
+          <div className="relative w-full rounded-2xl overflow-hidden bg-primary/10 border border-primary/20 flex flex-col md:flex-row items-center p-8 md:p-12 gap-8">
+            <div className="flex-1 text-center md:text-left z-10">
+              <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Koleksi Pilihan Nusantara
+              </h2>
+              <p className="text-muted-foreground mb-6 md:max-w-md">
+                Kurasi karya seni dan kerajinan tangan terbaik dari pengrajin master lokal pilihan editor kami. Sentuhan otentik untuk rumah Anda.
+              </p>
+              <Link 
+                href="/search?category=all" 
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground text-background px-6 py-3 text-sm font-bold hover:bg-foreground/90 transition-all"
+              >
+                Jelajahi Koleksi
+              </Link>
+            </div>
+            
+            <div className="w-full md:w-1/2 grid grid-cols-2 gap-4 z-10">
+              {/* Sample feature images for the banner */}
+              <div className="aspect-[4/5] rounded-xl overflow-hidden bg-muted relative shadow-md transform -rotate-2 hover:rotate-0 transition-transform">
+                <Image src="/hero_banner.png" alt="Featured 1" fill className="object-cover" />
+              </div>
+              <div className="aspect-[4/5] rounded-xl overflow-hidden bg-muted relative shadow-md transform translate-y-4 hover:translate-y-2 transition-transform">
+                <Image src="/category_thumb.png" alt="Featured 2" fill className="object-cover" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════════════════════
             CURATED GRID 2: BARU DITAMBAHKAN
             ════════════════════════════════════════════════════════ */}
         <section className="mb-16">

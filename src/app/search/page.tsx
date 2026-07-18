@@ -11,6 +11,7 @@ interface SearchPageProps {
     minPrice?: string;
     maxPrice?: string;
     sort?: string;
+    minRating?: string;
   }>;
 }
 
@@ -26,12 +27,12 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 
 // Fallback mock products
 const mockProducts = [
-  { id: "p1", title: "Kendi Keramik Kasongan Klasik", sellerName: "Lempuyang Clay", price: 185000, discount: 10, slug: "kendi-keramik-kasongan-klasik", photos: [], categoryName: "Keramik" },
-  { id: "p2", title: "Selendang Sutera Batik Tulis Solo", sellerName: "Batik Ndalem", price: 1250000, discount: 5, slug: "selendang-sutera-batik-tulis-solo", photos: [], categoryName: "Batik" },
-  { id: "p3", title: "Mangkuk Kayu Jati Solid 20cm", sellerName: "JavArtisan Studio", price: 95000, discount: 0, slug: "mangkuk-kayu-jati-solid-20cm", photos: [], categoryName: "Kerajinan Kayu" },
-  { id: "p4", title: "Cincin Perak Bali Ukir Motif Naga", sellerName: "Bali Silver Art", price: 325000, discount: 15, slug: "cincin-perak-bali", photos: [], categoryName: "Perhiasan" },
-  { id: "p5", title: "Tas Rajut Boho Anyaman Bambu Alami", sellerName: "Crochet Nusantara", price: 175000, discount: 0, slug: "tas-rajut-boho", photos: [], categoryName: "Crochet" },
-  { id: "p6", title: "Hiasan Dinding Macrame Premium", sellerName: "Studio Simpul", price: 250000, discount: 10, slug: "hiasan-dinding-macrame", photos: [], categoryName: "Macrame" },
+  { id: "p1", title: "Kendi Keramik Kasongan Klasik", sellerName: "Lempuyang Clay", price: 185000, discount: 10, slug: "kendi-keramik-kasongan-klasik", photos: [], categoryName: "Keramik", rating: 4.8, reviewsCount: 12 },
+  { id: "p2", title: "Selendang Sutera Batik Tulis Solo", sellerName: "Batik Ndalem", price: 1250000, discount: 5, slug: "selendang-sutera-batik-tulis-solo", photos: [], categoryName: "Batik", rating: 5.0, reviewsCount: 4 },
+  { id: "p3", title: "Mangkuk Kayu Jati Solid 20cm", sellerName: "JavArtisan Studio", price: 95000, discount: 0, slug: "mangkuk-kayu-jati-solid-20cm", photos: [], categoryName: "Kerajinan Kayu", rating: 4.5, reviewsCount: 22 },
+  { id: "p4", title: "Cincin Perak Bali Ukir Motif Naga", sellerName: "Bali Silver Art", price: 325000, discount: 15, slug: "cincin-perak-bali", photos: [], categoryName: "Perhiasan", rating: 4.2, reviewsCount: 8 },
+  { id: "p5", title: "Tas Rajut Boho Anyaman Bambu Alami", sellerName: "Crochet Nusantara", price: 175000, discount: 0, slug: "tas-rajut-boho", photos: [], categoryName: "Crochet", rating: 4.7, reviewsCount: 19 },
+  { id: "p6", title: "Hiasan Dinding Macrame Premium", sellerName: "Studio Simpul", price: 250000, discount: 10, slug: "hiasan-dinding-macrame", photos: [], categoryName: "Macrame", rating: 4.9, reviewsCount: 31 },
 ];
 
 const categories = [
@@ -57,7 +58,7 @@ const sortOptions = [
 export const dynamic = "force-dynamic";
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const { q, category, minPrice, maxPrice, sort } = await searchParams;
+  const { q, category, minPrice, maxPrice, sort, minRating } = await searchParams;
 
   let products: any[] = [];
   let dbOnline = false;
@@ -96,24 +97,46 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         include: {
           category: true,
           seller: true,
+          reviews: {
+            select: {
+              rating: true,
+            },
+          },
         },
         take: 48,
       }),
       prisma.product.count({ where }),
     ]);
 
-    products = results.map((p) => ({
-      id: p.id,
-      title: p.title,
-      sellerName: p.seller.storeName,
-      price: Number(p.price),
-      discount: Number(p.discount),
-      slug: p.slug,
-      photos: p.photos,
-      categoryName: p.category.name,
-    }));
+    products = results.map((p) => {
+      const ratingSum = p.reviews.reduce((sum, r) => sum + r.rating, 0);
+      const ratingVal = p.reviews.length > 0 ? ratingSum / p.reviews.length : 0;
+      return {
+        id: p.id,
+        title: p.title,
+        sellerName: p.seller.storeName,
+        price: Number(p.price),
+        discount: Number(p.discount),
+        slug: p.slug,
+        photos: p.photos,
+        categoryName: p.category.name,
+        rating: ratingVal,
+        reviewsCount: p.reviews.length,
+      };
+    });
 
-    totalCount = count;
+    // In-memory filter for rating
+    if (minRating) {
+      const min = Number(minRating);
+      products = products.filter((p) => p.rating >= min);
+    }
+
+    // In-memory sort by rating if selected
+    if (sort === "rating") {
+      products.sort((a, b) => b.rating - a.rating);
+    }
+
+    totalCount = products.length;
     dbOnline = true;
   } catch {
     // Database offline — use mock data filtered by query
@@ -121,6 +144,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       if (q) return p.title.toLowerCase().includes(q.toLowerCase());
       return true;
     });
+    if (minRating) {
+      const min = Number(minRating);
+      products = products.filter((p) => p.rating >= min);
+    }
+    if (sort === "rating") {
+      products.sort((a, b) => b.rating - a.rating);
+    }
     totalCount = products.length;
   }
 
@@ -131,6 +161,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     if (minPrice) urlParams.set("minPrice", minPrice);
     if (maxPrice) urlParams.set("maxPrice", maxPrice);
     if (sort) urlParams.set("sort", sort);
+    if (minRating) urlParams.set("minRating", minRating);
     Object.entries(params).forEach(([k, v]) => {
       if (v) urlParams.set(k, v);
       else urlParams.delete(k);
@@ -215,6 +246,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   {q && <input type="hidden" name="q" value={q} />}
                   {category && <input type="hidden" name="category" value={category} />}
                   {sort && <input type="hidden" name="sort" value={sort} />}
+                  {minRating && <input type="hidden" name="minRating" value={minRating} />}
                   <input
                     type="number"
                     name="minPrice"
@@ -233,6 +265,31 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     Terapkan Filter
                   </button>
                 </form>
+              </div>
+
+              {/* Rating Filter */}
+              <div className="border-t border-border/40 pt-5 mt-5">
+                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Rating Ulasan</h4>
+                <div className="space-y-1">
+                  {[
+                    { label: "Semua Rating", value: "" },
+                    { label: "★ 4.5 & Ke atas", value: "4.5" },
+                    { label: "★ 4.0 & Ke atas", value: "4.0" },
+                    { label: "★ 3.5 & Ke atas", value: "3.5" },
+                  ].map((opt) => (
+                    <Link
+                      key={opt.value}
+                      href={buildUrl({ minRating: opt.value })}
+                      className={`flex items-center text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                        (minRating || "") === opt.value
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-foreground hover:bg-accent"
+                      }`}
+                    >
+                      <span>{opt.label}</span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           </aside>
