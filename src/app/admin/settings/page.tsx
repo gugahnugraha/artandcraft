@@ -109,6 +109,8 @@ export default function AdminSettingsPage() {
         setSuccessMsg("Pengaturan umum berhasil disimpan!");
         // Dynamically update UI theme variables in layout without reloading
         document.documentElement.style.setProperty("--primary", configs.primary_color);
+        document.documentElement.style.setProperty("--ring", configs.primary_color);
+        localStorage.setItem("primary_color", configs.primary_color);
         setTimeout(() => setSuccessMsg(null), 3000);
       }
     } catch (error) {
@@ -314,13 +316,25 @@ export default function AdminSettingsPage() {
                       <input
                         type="color"
                         value={configs.primary_color}
-                        onChange={(e) => setConfigs({ ...configs, primary_color: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setConfigs({ ...configs, primary_color: val });
+                          document.documentElement.style.setProperty("--primary", val);
+                          document.documentElement.style.setProperty("--ring", val);
+                        }}
                         className="h-10 w-12 rounded-xl border border-border bg-background p-1.5 cursor-pointer shrink-0"
                       />
                       <input
                         type="text"
                         value={configs.primary_color}
-                        onChange={(e) => setConfigs({ ...configs, primary_color: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setConfigs({ ...configs, primary_color: val });
+                          if (val.match(/^#[0-9A-Fa-f]{6}$/)) {
+                            document.documentElement.style.setProperty("--primary", val);
+                            document.documentElement.style.setProperty("--ring", val);
+                          }
+                        }}
                         placeholder="#0DA9BA"
                         className="w-full rounded-xl border border-border bg-background py-2.5 px-3.5 text-sm text-foreground focus:border-primary focus:outline-none font-mono"
                       />
