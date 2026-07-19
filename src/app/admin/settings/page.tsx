@@ -17,6 +17,7 @@ import {
   Sparkles,
   Info
 } from "lucide-react";
+import ImageDropzone from "@/components/ui/ImageDropzone";
 
 interface HeroSlide {
   id: string;
@@ -68,20 +69,22 @@ export default function AdminSettingsPage() {
   });
 
   const [formLangTab, setFormLangTab] = useState<"id" | "en">("id");
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Fetch slides
-      const slidesRes = await fetch("/api/admin/settings/slides");
+      const [slidesRes, configsRes] = await Promise.all([
+        fetch("/api/admin/settings/slides"),
+        fetch("/api/admin/settings/config"),
+      ]);
+
       const slidesData = await slidesRes.json();
+      const configsData = await configsRes.json();
+
       if (slidesRes.ok) {
         setSlides(slidesData.slides || []);
       }
-
-      // Fetch configs
-      const configsRes = await fetch("/api/admin/settings/config");
-      const configsData = await configsRes.json();
       if (configsRes.ok) {
         setConfigs((prev) => ({ ...prev, ...configsData.configs }));
       }
@@ -156,6 +159,47 @@ export default function AdminSettingsPage() {
       isActive: slide.isActive,
     });
     setIsModalOpen(true);
+  };
+
+  const translateText = async (text: string): Promise<string> => {
+    if (!text || !text.trim()) return "";
+    try {
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=id|en`
+      );
+      const data = await res.json();
+      if (data?.responseData?.translatedText) {
+        return data.responseData.translatedText;
+      }
+      return text;
+    } catch (err) {
+      console.error("Translation API error:", err);
+      return text;
+    }
+  };
+
+  const handleAutoTranslate = async () => {
+    setIsTranslating(true);
+    try {
+      const [translatedTag, translatedTitle, translatedSubtitle, translatedBtnText] = await Promise.all([
+        translateText(formData.tagId),
+        translateText(formData.titleId),
+        translateText(formData.subtitleId),
+        translateText(formData.btnTextId),
+      ]);
+
+      setFormData((prev) => ({
+        ...prev,
+        tagEn: translatedTag || prev.tagEn,
+        titleEn: translatedTitle || prev.titleEn,
+        subtitleEn: translatedSubtitle || prev.subtitleEn,
+        btnTextEn: translatedBtnText || prev.btnTextEn,
+      }));
+    } catch (err) {
+      console.error("Auto translation failed:", err);
+    } finally {
+      setIsTranslating(false);
+    }
   };
 
   const handleSaveSlide = async (e: React.FormEvent) => {
@@ -593,18 +637,15 @@ export default function AdminSettingsPage() {
             {/* Modal Form */}
             <form onSubmit={handleSaveSlide} className="flex-1 overflow-y-auto p-6 space-y-6">
               
-              {/* Photo Background URL */}
+              {/* Photo Background Dropzone (Direct R2 Upload) */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  URL Foto Background (Cloudflare R2 atau lokal)
+                  Foto Background Hero Banner (Upload ke R2)
                 </label>
-                <input
-                  type="text"
+                <ImageDropzone
                   value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="/hero_banner.png atau https://cdn.artandcraft.id/..."
-                  required
-                  className="w-full rounded-xl border border-border bg-background py-2.5 px-3.5 text-sm text-foreground focus:border-primary focus:outline-none"
+                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                  folder="hero-slides"
                 />
               </div>
 
@@ -727,11 +768,30 @@ export default function AdminSettingsPage() {
                         onChange={(e) => setFormData({ ...formData, btnTextId: e.target.value })}
                         placeholder="Contoh: Jelajahi Sekarang"
                         className="w-full rounded-xl border border-border bg-background py-2 px-3 text-sm text-foreground focus:border-primary focus:outline-none"
-                      />
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4 animate-fade-in">
+                    {/* Auto Translate Button */}
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleAutoTranslate}
+                        disabled={isTranslating}
+                        className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1.5 bg-primary/5 hover:bg-primary/10 px-3.5 py-2 rounded-xl border border-primary/20 disabled:opacity-50 transition-colors shadow-sm active:scale-95"
+                      >
+                        {isTranslating ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Menerjemahkan...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3.5 w-3.5" /> Terjemahkan Otomatis dari B. Indonesia
+                          </>
+                        )}
+                      </button>
+                    </div>
+
                     <div>
                       <label className="block text-xs font-bold text-muted-foreground mb-1">
                         Tag Slide (English)

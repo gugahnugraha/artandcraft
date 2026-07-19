@@ -32,8 +32,12 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Read optional folder prefix
+    const searchParams = new URL(req.url).searchParams;
+    const folder = searchParams.get("folder") || (formData.get("folder") as string) || undefined;
+
     // 4. Upload file using the active Storage provider
-    const fileUrl = await storage.uploadFile(buffer, file.name, file.type);
+    const fileUrl = await storage.uploadFile(buffer, file.name, file.type, folder);
 
     return NextResponse.json({ url: fileUrl });
   } catch (error) {

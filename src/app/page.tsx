@@ -65,8 +65,17 @@ export default async function Home() {
   let featuredProducts = mockProducts;
   let newArrivals = mockProducts.slice(4, 10);
   let slides: any[] = [];
+  let categoriesList = categories;
 
   try {
+    // Fetch categories from DB
+    const dbCategories = await prisma.category.findMany({
+      select: { name: true, slug: true },
+    });
+    if (dbCategories.length > 0) {
+      categoriesList = dbCategories;
+    }
+
     // Fetch active hero slides
     slides = await prisma.heroSlide.findMany({
       where: { isActive: true },
@@ -99,7 +108,7 @@ export default async function Home() {
 
   return (
     <HomeClient 
-      categories={categories} 
+      categories={categoriesList} 
       featuredProducts={featuredProducts} 
       newArrivals={newArrivals} 
       slides={slides}

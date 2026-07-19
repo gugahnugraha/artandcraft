@@ -28,14 +28,15 @@ export class S3StorageProvider implements StorageProvider {
     });
   }
 
-  async uploadFile(file: Buffer, fileName: string, mimeType: string): Promise<string> {
+  async uploadFile(file: Buffer, fileName: string, mimeType: string, folder?: string): Promise<string> {
     const fileExtension = fileName.split(".").pop();
     const uniqueKey = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExtension}`;
+    const key = folder ? `${folder.replace(/\/$/, "")}/${uniqueKey}` : uniqueKey;
 
     await this.s3Client.send(
       new PutObjectCommand({
         Bucket: this.bucketName,
-        Key: uniqueKey,
+        Key: key,
         Body: file,
         ContentType: mimeType,
       })
@@ -43,7 +44,7 @@ export class S3StorageProvider implements StorageProvider {
 
     // Standardize URL formatting
     const baseUrl = this.publicUrl.endsWith("/") ? this.publicUrl.slice(0, -1) : this.publicUrl;
-    return `${baseUrl}/${uniqueKey}`;
+    return `${baseUrl}/${key}`;
   }
 
   async deleteFile(fileUrl: string): Promise<void> {

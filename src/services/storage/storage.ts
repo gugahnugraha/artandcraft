@@ -6,7 +6,7 @@ export interface StorageProvider {
    * @param mimeType The file MIME type (e.g. image/jpeg, image/png).
    * @returns A promise that resolves to the public URL of the uploaded file.
    */
-  uploadFile(file: Buffer, fileName: string, mimeType: string): Promise<string>;
+  uploadFile(file: Buffer, fileName: string, mimeType: string, folder?: string): Promise<string>;
 
   /**
    * Deletes a file from the storage destination.
