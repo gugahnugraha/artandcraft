@@ -176,14 +176,30 @@ const HERO_SLIDES_EN = [
 export default function HomeClient({ 
   categories, 
   featuredProducts, 
-  newArrivals 
+  newArrivals,
+  slides = []
 }: { 
   categories: any[];
   featuredProducts: any[];
   newArrivals: any[];
+  slides?: any[];
 }) {
   const { t, language } = useLanguage();
-  const heroSlides = language === "en" ? HERO_SLIDES_EN : HERO_SLIDES_ID;
+
+  // Format DB slides dynamically by current language
+  const formattedDbSlides = slides.map((s) => ({
+    tag: language === "en" ? s.tagEn : s.tagId,
+    title: language === "en" ? s.titleEn : s.titleId,
+    subtitle: language === "en" ? s.subtitleEn : s.subtitleId,
+    image: s.imageUrl,
+    btnText: language === "en" ? s.btnTextEn : s.btnTextId,
+    btnHref: s.btnLink,
+  }));
+
+  const heroSlides = formattedDbSlides.length > 0 
+    ? formattedDbSlides 
+    : (language === "en" ? HERO_SLIDES_EN : HERO_SLIDES_ID);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 

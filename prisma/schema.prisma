@@ -542,3 +542,33 @@ model CustomRequest {
   buyer         User          @relation("BuyerCustomRequests", fields: [buyerId], references: [id], onDelete: Cascade)
   sellerProfile SellerProfile @relation("SellerCustomRequests", fields: [sellerProfileId], references: [id], onDelete: Cascade)
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLATFORM SETTINGS & CUSTOMIZATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+model HeroSlide {
+  id          String   @id @default(cuid())
+  tagId       String
+  tagEn       String
+  titleId     String
+  titleEn     String
+  subtitleId  String
+  subtitleEn  String
+  imageUrl    String
+  btnTextId   String
+  btnTextEn   String
+  btnLink     String
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PlatformConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

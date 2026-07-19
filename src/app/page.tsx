@@ -64,8 +64,15 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   let featuredProducts = mockProducts;
   let newArrivals = mockProducts.slice(4, 10);
+  let slides: any[] = [];
 
   try {
+    // Fetch active hero slides
+    slides = await prisma.heroSlide.findMany({
+      where: { isActive: true },
+      orderBy: { order: "asc" },
+    });
+
     const products = await prisma.product.findMany({
       where: { status: "ACTIVE" },
       include: { category: true, seller: true },
@@ -95,6 +102,7 @@ export default async function Home() {
       categories={categories} 
       featuredProducts={featuredProducts} 
       newArrivals={newArrivals} 
+      slides={slides}
     />
   );
 }

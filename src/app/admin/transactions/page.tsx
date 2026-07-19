@@ -86,9 +86,6 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
           <select
             name="status"
             defaultValue={status || "ALL"}
-            onChange={(e) => {
-              e.currentTarget.form?.submit();
-            }}
             className="rounded-lg border border-border bg-background py-2 px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all w-full sm:w-auto"
           >
             {statusOptions.map((opt) => (
@@ -97,6 +94,12 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
               </option>
             ))}
           </select>
+          <button
+            type="submit"
+            className="rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+          >
+            Filter
+          </button>
         </form>
       </div>
 

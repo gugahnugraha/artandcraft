@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -32,8 +33,31 @@ export default async function RootLayout({
 }>) {
   const session = await auth();
 
+  // Query platform configs for visual styling
+  let primaryColor = "#0DA9BA";
+  try {
+    if (prisma && (prisma as any).platformConfig) {
+      const config = await (prisma as any).platformConfig.findUnique({
+        where: { key: "primary_color" },
+      });
+      if (config?.value) {
+        primaryColor = config.value;
+      }
+    }
+  } catch (err) {
+    console.error("Layout prisma query error:", err);
+  }
+
   return (
     <html lang="id" className={cn("h-full antialiased", "font-sans", geist.variable)}>
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --primary: ${primaryColor} !important;
+            --ring: ${primaryColor} !important;
+          }
+        `}} />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-200">
         <LanguageProvider>
           <AuthProvider session={session}>

@@ -23,6 +23,7 @@ const adminLinks = [
   { href: "/admin/users", label: "Manajemen Pengguna", icon: Users },
   { href: "/admin/transactions", label: "Transaksi", icon: CreditCard },
   { href: "/admin/withdrawals", label: "Penarikan Saldo", icon: Wallet },
+  { href: "/admin/settings", label: "Kustomisasi UI", icon: Settings },
 ];
 
 export default async function AdminLayout({
@@ -31,6 +32,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+  console.log("ADMIN LAYOUT SESSION:", JSON.stringify(session, null, 2));
 
   if (!session?.user || session.user.role !== "ADMIN") {
     redirect("/");

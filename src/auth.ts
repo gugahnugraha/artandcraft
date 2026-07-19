@@ -12,30 +12,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
-  callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      if (user) {
-        token.role = user.role;
-        token.id = user.id ?? "";
-        token.emailVerified = user.emailVerified;
-      }
-      
-      // Handle active session updates (e.g. role upgraded to SELLER)
-      if (trigger === "update" && session?.user) {
-        token.role = session.user.role;
-      }
-      
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.role = token.role as Role;
-        session.user.id = token.id as string;
-        session.user.emailVerified = token.emailVerified as Date | null;
-      }
-      return session;
-    },
-  },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
