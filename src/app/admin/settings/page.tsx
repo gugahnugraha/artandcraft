@@ -768,6 +768,7 @@ export default function AdminSettingsPage() {
                         onChange={(e) => setFormData({ ...formData, btnTextId: e.target.value })}
                         placeholder="Contoh: Jelajahi Sekarang"
                         className="w-full rounded-xl border border-border bg-background py-2 px-3 text-sm text-foreground focus:border-primary focus:outline-none"
+                      />
                     </div>
                   </div>
                 ) : (
