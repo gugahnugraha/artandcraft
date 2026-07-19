@@ -10,6 +10,7 @@ interface SearchPageProps {
   searchParams: Promise<{
     q?: string;
     category?: string;
+    subcategory?: string;
     min?: string;
     max?: string;
     sort?: string;
@@ -17,9 +18,11 @@ interface SearchPageProps {
 }
 
 export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
-  const { q, category } = await searchParams;
+  const { q, category, subcategory } = await searchParams;
   const title = q
     ? `Hasil Pencarian untuk "${q}" | ArtAndCraft.id`
+    : subcategory
+    ? `Subkategori: ${subcategory} | ArtAndCraft.id`
     : category
     ? `Kategori: ${category} | ArtAndCraft.id`
     : "Cari Produk Kerajinan & Artisan | ArtAndCraft.id";
@@ -31,12 +34,22 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const { q, category, min, max, sort } = await searchParams;
+  const { q, category, subcategory, min, max, sort } = await searchParams;
 
   // 1. Fetch categories for filter sidebar
   const categories = await prisma.category.findMany({
-    select: { id: true, name: true, slug: true },
-    orderBy: { name: "asc" },
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      subcategories: {
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, name: true, slug: true },
+      },
+    },
   });
 
   // 2. Build Prisma Filter Clause
@@ -56,6 +69,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   if (category && category.trim() !== "") {
     whereClause.category = {
       slug: category.trim(),
+    };
+  }
+
+  // Subcategory Filter
+  if (subcategory && subcategory.trim() !== "") {
+    whereClause.subcategory = {
+      slug: subcategory.trim(),
     };
   }
 

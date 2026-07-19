@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard, Shield, X, Globe } from "lucide-react";
+import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard, Shield, X, Globe, ChevronDown, LayoutGrid } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/store/cart";
@@ -23,6 +23,30 @@ export default function Header() {
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  const [categories, setCategories] = useState<Array<{
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+    subcategories: Array<{ id: string; name: string; slug: string }>;
+  }>>([]);
+  const [activeCategoryHover, setActiveCategoryHover] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/categories");
+        const data = await res.json();
+        if (res.ok && data.categories) {
+          setCategories(data.categories);
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories in Header:", err);
+      }
+    };
+    fetchCategories();
   }, []);
 
   const [announcement, setAnnouncement] = useState<string | null>(null);
@@ -247,18 +271,80 @@ export default function Header() {
           </div>
         </div>
         
-        {/* BOTTOM ROW: Secondary Navigation (Categories) */}
-        <nav className="hidden md:flex items-center justify-center gap-6 h-10 pb-2">
+        {/* BOTTOM ROW: Secondary Navigation (Aesthetic Main Product Types) */}
+        <nav 
+          className="hidden md:flex items-center justify-center gap-6 lg:gap-8 h-10 pb-2 relative border-t border-border/40 pt-1"
+          onMouseLeave={() => setActiveCategoryHover(null)}
+        >
+          {/* All Categories Dropdown Trigger */}
+          <div 
+            className="relative group py-1"
+            onMouseEnter={() => setActiveCategoryHover("all-categories-trigger")}
+          >
+            <button 
+              className="text-[13px] font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 py-1 px-3 rounded-full bg-primary/5 hover:bg-primary/10 border border-primary/20 shadow-xs cursor-pointer"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span>Semua Kategori</span>
+              <ChevronDown className="h-3 w-3 transition-transform group-hover:rotate-180" />
+            </button>
+
+            {/* Mega Menu Dropdown for ALL Categories */}
+            {activeCategoryHover === "all-categories-trigger" && (
+              <div className="absolute left-0 top-full mt-1 w-[680px] rounded-3xl border border-border bg-card p-5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200 grid grid-cols-3 gap-4">
+                {categories.slice(0, 9).map((cat) => (
+                  <div key={cat.id} className="space-y-1.5 p-2 rounded-xl hover:bg-muted/30 transition-colors">
+                    <Link
+                      href={`/search?category=${cat.slug}`}
+                      className="font-bold text-xs text-foreground hover:text-primary flex items-center justify-between"
+                      onClick={() => setActiveCategoryHover(null)}
+                    >
+                      <span>{cat.name}</span>
+                      <span className="text-[10px] font-normal text-muted-foreground">&rarr;</span>
+                    </Link>
+                    {cat.subcategories && cat.subcategories.length > 0 && (
+                      <div className="space-y-1 pl-1">
+                        {cat.subcategories.slice(0, 3).map((sub) => (
+                          <Link
+                            key={sub.id}
+                            href={`/search?category=${cat.slug}&subcategory=${sub.slug}`}
+                            className="block text-[11px] text-muted-foreground hover:text-primary truncate"
+                            onClick={() => setActiveCategoryHover(null)}
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <div className="col-span-3 pt-2 border-t border-border/40 text-center">
+                  <Link
+                    href="/search"
+                    className="text-xs font-bold text-primary hover:underline"
+                    onClick={() => setActiveCategoryHover(null)}
+                  >
+                    Jelajahi Seluruh Katalog Kategori &amp; Kerajinan Nusantara &rarr;
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Aesthetic Key Product Type Links */}
           {[
-            { label: "Batik", href: "/search?category=batik" },
-            { label: "Woodcraft", href: "/search?category=wood-craft" },
-            { label: "Ceramics", href: "/search?category=pottery" },
-            { label: "Jewelry", href: "/search?category=jewelry" },
-            { label: "Macrame", href: "/search?category=macrame" },
-            { label: "Leather", href: "/search?category=leather-craft" },
-            { label: "Home Decor", href: "/search?category=home-decor" },
+            { label: "Batik", href: "/search?category=batik-wastra" },
+            { label: "Kerajinan Kayu", href: "/search?category=kerajinan-kayu" },
+            { label: "Resin Art", href: "/search?category=seni-rupa-lukisan" },
+            { label: "Keramik", href: "/search?category=keramik-gerabah" },
+            { label: "Perhiasan", href: "/search?category=perhiasan-aksesori" },
+            { label: "Anyaman", href: "/search?category=anyaman-rotan" },
           ].map(({ label, href }) => (
-            <Link key={label} href={href} className="text-[13px] font-medium text-foreground hover:underline underline-offset-4 transition-all">
+            <Link
+              key={label}
+              href={href}
+              className="text-[13px] font-medium text-foreground/80 hover:text-primary hover:underline underline-offset-4 transition-all"
+            >
               {label}
             </Link>
           ))}

@@ -15,109 +15,148 @@ const pool = new pg.Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+// Etsy-Inspired Rich Artisan Category & Subcategory Taxonomy
 const categoriesData = [
   {
-    name: "Painting",
-    slug: "painting",
-    description: "Lukisan tangan otentik bergaya klasik hingga modern",
-    subcategories: ["Lukisan Cat Minyak", "Lukisan Akrilik", "Sketsa Wajah", "Lukisan Kanvas"],
+    name: "Batik & Wastra",
+    slug: "batik-wastra",
+    description: "Kain batik tulis, cap, tenun ikat NTT, songket, dan kain tradisional nusantara",
+    icon: "Sparkles",
+    subcategories: [
+      { name: "Batik Tulis Solo & Jogja", slug: "batik-tulis" },
+      { name: "Batik Cap & Pekalongan", slug: "batik-cap" },
+      { name: "Tenun Ikat NTT & Toraja", slug: "tenun-ikat" },
+      { name: "Kain Ulos & Songket", slug: "ulos-songket" },
+      { name: "Selendang & Syal Etnik", slug: "selendang-etnik" },
+    ],
   },
   {
-    name: "Crochet",
-    slug: "crochet",
-    description: "Seni rajutan benang wol premium buatan tangan",
-    subcategories: ["Tas Rajut", "Boneka Amigurumi", "Pakaian Rajut", "Aksesoris Rajut"],
+    name: "Keramik & Gerabah",
+    slug: "keramik-gerabah",
+    description: "Tembikar tanah liat, gerabah Kasongan, vas bunga, dan peralatan saji keramik",
+    icon: "Utensils",
+    subcategories: [
+      { name: "Gerabah Kasongan & Lombok", slug: "gerabah-kasongan" },
+      { name: "Vas Bunga & Guci Keramik", slug: "vas-guci-keramik" },
+      { name: "Mangkuk & Piring Lukis", slug: "mangkuk-piring-keramik" },
+      { name: "Cangkir & Teaset Tanah Liat", slug: "cangkir-teaset-tanah-liat" },
+      { name: "Patung & Pajangan Keramik", slug: "patung-keramik" },
+    ],
   },
   {
-    name: "Macrame",
-    slug: "macrame",
-    description: "Seni anyaman simpul tali untuk dekorasi estetik",
-    subcategories: ["Hiasan Dinding", "Gantungan Pot", "Tas Macrame", "Dreamcatcher"],
+    name: "Kerajinan Kayu & Ukiran",
+    slug: "kerajinan-kayu",
+    description: "Ukiran Jepara, mangkuk kayu jati solid, kotak perhiasan, dan hiasan kayu",
+    icon: "Trees",
+    subcategories: [
+      { name: "Ukiran Jepara & Bali", slug: "ukiran-jepara-bali" },
+      { name: "Peralatan Makan & Saji Jati", slug: "peralatan-makan-jati" },
+      { name: "Kotak Perhiasan & Storage Kayu", slug: "kotak-perhiasan-kayu" },
+      { name: "Hiasan Dinding & Frame Kayu", slug: "hiasan-dinding-kayu" },
+      { name: "Jam & Miniatur Kayu", slug: "miniatur-kayu" },
+    ],
   },
   {
-    name: "Resin Art",
-    slug: "resin-art",
-    description: "Karya seni resin bening dengan ornamen bunga dan kayu",
-    subcategories: ["Tatakan Gelas (Coaster)", "Nampan Hias", "Perhiasan Resin", "Pajangan Meja"],
+    name: "Perhiasan & Aksesori",
+    slug: "perhiasan-aksesori",
+    description: "Cincin perak bakar Bali, kalung manik etnik, anting handmade, dan bros kuningan",
+    icon: "Gem",
+    subcategories: [
+      { name: "Cincin Perak Ukir Bali", slug: "cincin-perak-bali" },
+      { name: "Kalung & Liontin Etnik", slug: "kalung-etnik" },
+      { name: "Anting & Gelang Handmade", slug: "anting-gelang-handmade" },
+      { name: "Bros & Pin Etnik", slug: "bros-pin-etnik" },
+      { name: "Aksesori Manik & Batu Alam", slug: "manik-manik-batu-alam" },
+    ],
   },
   {
-    name: "Wood Craft",
-    slug: "wood-craft",
-    description: "Kerajinan ukiran jepara dan perabot kayu jati pilihan",
-    subcategories: ["Ukiran Jepara", "Patung Kayu", "Wadah Saji Jati", "Peralatan Makan Kayu"],
+    name: "Kerajinan Kulit",
+    slug: "kerajinan-kulit",
+    description: "Dompet kulit full-grain, tas handcrafted, sabuk, dan tempat kunci kulit asli",
+    icon: "Briefcase",
+    subcategories: [
+      { name: "Dompet Kulit Full-Grain", slug: "dompet-kulit" },
+      { name: "Tas Kulit Handcrafted", slug: "tas-kulit" },
+      { name: "Sabuk & Ikat Pinggang Kulit", slug: "sabuk-kulit" },
+      { name: "Case & Sleeve Kulit", slug: "case-sleeve-kulit" },
+      { name: "Gantungan Kunci Kulit", slug: "gantungan-kunci-kulit" },
+    ],
   },
   {
-    name: "Leather Craft",
-    slug: "leather-craft",
-    description: "Produk kulit asli buatan tangan dengan jahitan presisi",
-    subcategories: ["Dompet Kulit", "Tas Kulit", "Gantungan Kunci", "Sabuk Kulit"],
+    name: "Dekorasi Rumah & Living",
+    slug: "dekorasi-rumah",
+    description: "Hiasan macrame, cermin anyaman, sarung bantal etnik, dan lilin aromaterapi",
+    icon: "Home",
+    subcategories: [
+      { name: "Hiasan Dinding Macrame", slug: "macrame-wall-decor" },
+      { name: "Cermin Ukir & Anyaman", slug: "cermin-ukir-anyaman" },
+      { name: "Sarung Bantal Sofa Etnik", slug: "bantal-sofa-etnik" },
+      { name: "Lilin Aromaterapi & Diffuser", slug: "lilin-aromaterapi" },
+      { name: "Lampu Hias Etnik & Bambu", slug: "lampu-hias-etnik" },
+    ],
   },
   {
-    name: "Jewelry",
-    slug: "jewelry",
-    description: "Perhiasan perak bakar bali dan kuningan etnik nusantara",
-    subcategories: ["Cincin Perak Bali", "Kalung Etnik", "Anting Handmade", "Gelang Manik-manik"],
+    name: "Anyaman & Rotan",
+    slug: "anyaman-rotan",
+    description: "Tas rotan Bali, keranjang enceng gondok, placemat bambu, dan tikar pandan",
+    icon: "ShoppingBag",
+    subcategories: [
+      { name: "Tas Rotan Anyaman Bali", slug: "tas-rotan-bali" },
+      { name: "Keranjang Enceng Gondok & Bambu", slug: "keranjang-anyaman" },
+      { name: "Placemat & Coaster Anyaman", slug: "placemat-coaster-anyaman" },
+      { name: "Tikar & Karpet Pandan", slug: "tikar-karpet-pandan" },
+      { name: "Topi & Aksesori Anyaman", slug: "topi-aksesori-anyaman" },
+    ],
   },
   {
-    name: "Home Decor",
-    slug: "home-decor",
-    description: "Hiasan dan dekorasi interior rumah bernuansa hangat",
-    subcategories: ["Cermin Anyaman", "Bantal Sofa Etnik", "Keranjang Enceng Gondok", "Lilin Aromaterapi"],
+    name: "Sulam, Renda & Rajut",
+    slug: "sulam-rajut",
+    description: "Sulam tangan hoop art, tas rajut wol, taplak meja linen, dan boneka amigurumi",
+    icon: "Scissors",
+    subcategories: [
+      { name: "Sulam Tangan Hoop Art", slug: "sulam-hoop-art" },
+      { name: "Tas & Dompet Rajut", slug: "tas-dompet-rajut" },
+      { name: "Taplak Meja Sulam", slug: "taplak-meja-sulam" },
+      { name: "Pakaian & Cardigan Rajut", slug: "pakaian-rajut" },
+      { name: "Boneka Amigurumi", slug: "boneka-amigurumi" },
+    ],
   },
   {
-    name: "Pottery",
-    slug: "pottery",
-    description: "Tembikar tanah liat tradisional dari Kasongan dan Lombok",
-    subcategories: ["Keramik Kasongan", "Vas Gerabah", "Cangkir Tanah Liat", "Piring Keramik Lukis"],
+    name: "Seni Rupa & Lukisan",
+    slug: "seni-rupa-lukisan",
+    description: "Lukisan cat minyak kanvas, seni resin art, kaligrafi kayu, dan patung seni",
+    icon: "Palette",
+    subcategories: [
+      { name: "Lukisan Minyak & Akrilik Kanvas", slug: "lukisan-kanvas" },
+      { name: "Seni Resin Art & Flower", slug: "resin-art" },
+      { name: "Kaligrafi Etnik & Aksara Jawa", slug: "kaligrafi-etnik" },
+      { name: "Sketsa Wajah & Ilustrasi", slug: "sketsa-ilustrasi" },
+      { name: "Patung Seni & Sculptures", slug: "patung-seni" },
+    ],
   },
   {
-    name: "Textile",
-    slug: "textile",
-    description: "Tenun ikat NTT, kain ulos, dan tenun lurik jawa",
-    subcategories: ["Tenun Ikat NTT", "Ulos Batak", "Lurik Yogyakarta", "Syal Etnik"],
-  },
-  {
-    name: "Batik",
-    slug: "batik",
-    description: "Batik tulis sutera asli dan batik cap premium nusantara",
-    subcategories: ["Batik Tulis Solo", "Batik Cap Cirebon", "Batik Lukis Modern", "Kain Jarik Klasik"],
-  },
-  {
-    name: "Custom Gift",
-    slug: "custom-gift",
-    description: "Hadiah unik yang dipersonalisasi khusus untuk momen spesial",
-    subcategories: ["Kado Wisuda", "Hantaran Pernikahan", "Sketsa Kustom", "Hiasan Kayu Nama"],
-  },
-  {
-    name: "Miniature",
-    slug: "miniature",
-    description: "Replika detail dalam ukuran mini yang berseni tinggi",
-    subcategories: ["Miniatur Rumah Adat", "Miniatur Kapal Pinisi", "Diorama Jalanan", "Replika Kendaraan"],
-  },
-  {
-    name: "Embroidery",
-    slug: "embroidery",
-    description: "Sulam tangan detail pada kain linen dan pakaian",
-    subcategories: ["Sulam Hoop Art", "Pakaian Sulam", "Tas Sulam", "Taplak Meja Sulam"],
-  },
-  {
-    name: "Calligraphy",
-    slug: "calligraphy",
-    description: "Seni menulis indah huruf arab dan aksara jawa klasik",
-    subcategories: ["Kaligrafi Arab Kuningan", "Kaligrafi Kayu", "Aksesar Jawa Tradisional"],
+    name: "Kado Kustom & Souvenir",
+    slug: "kado-kustom",
+    description: "Hantaran nikah kustom, souvenir kayu ukir nama, kado wisuda, dan miniatur",
+    icon: "Gift",
+    subcategories: [
+      { name: "Hantaran & Mahar Pernikahan", slug: "hantaran-mahar" },
+      { name: "Kado Wisuda Personalisasi", slug: "kado-wisuda" },
+      { name: "Souvenir Kayu Ukir Nama", slug: "souvenir-kayu-nama" },
+      { name: "Gift Box Etnik Kustom", slug: "gift-box-etnik" },
+      { name: "Diorama & Miniatur Custom", slug: "diorama-miniatur" },
+    ],
   },
 ];
 
 async function main() {
-  console.log("Start seeding database...");
+  console.log("Start seeding ETSY-style category taxonomy database...");
 
-  // Test pool connection first to fail gracefully if DB is offline
   try {
     const client = await pool.connect();
     client.release();
   } catch (err) {
-    console.warn("\n⚠️  Koneksi database gagal (ECONNREFUSED). Melewati proses seeding.");
-    console.warn("Pastikan Anda sudah mengonfigurasi DATABASE_URL yang aktif di file .env Anda.\n");
+    console.warn("\n⚠️ Koneksi database gagal. Melewati proses seeding.\n");
     await pool.end();
     return;
   }
@@ -143,39 +182,39 @@ async function main() {
   await prisma.user.deleteMany({});
 
   // 2. Seed Categories & Subcategories
-  console.log("Seeding categories and subcategories...");
+  console.log("Seeding Etsy-inspired categories & subcategories...");
   const categoriesMap: Record<string, string> = {};
   const subcategoriesMap: Record<string, string> = {};
 
+  let sortOrderIndex = 1;
   for (const cat of categoriesData) {
     const createdCat = await prisma.category.create({
       data: {
         name: cat.name,
         slug: cat.slug,
         description: cat.description,
+        icon: cat.icon,
+        sortOrder: sortOrderIndex++,
       },
     });
     categoriesMap[cat.slug] = createdCat.id;
 
+    let subSortOrderIndex = 1;
     for (const sub of cat.subcategories) {
-      const subSlug = sub
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-
       const createdSub = await prisma.subcategory.create({
         data: {
           categoryId: createdCat.id,
-          name: sub,
-          slug: `${cat.slug}-${subSlug}`,
+          name: sub.name,
+          slug: sub.slug,
+          sortOrder: subSortOrderIndex++,
         },
       });
-      subcategoriesMap[`${cat.slug}-${subSlug}`] = createdSub.id;
+      subcategoriesMap[sub.slug] = createdSub.id;
     }
   }
 
-  // 3. Create Users (Seller, Admin, Buyer)
-  console.log("Seeding users...");
+  // 3. Create Users
+  console.log("Seeding default users...");
   const hashedPassword = await bcrypt.hash("password123", 10);
 
   const sellerUser = await prisma.user.create({
@@ -187,16 +226,17 @@ async function main() {
     },
   });
 
-  const adminUser = await prisma.user.create({
+  const adminPassword = await bcrypt.hash("Admin@123", 10);
+  await prisma.user.create({
     data: {
-      name: "Admin ArtAndCraft",
+      name: "Super Admin",
       email: "admin@artandcraft.id",
-      password: hashedPassword,
+      password: adminPassword,
       role: Role.ADMIN,
     },
   });
 
-  const buyerUser = await prisma.user.create({
+  await prisma.user.create({
     data: {
       name: "Siti Rahma",
       email: "buyer@artandcraft.id",
@@ -213,32 +253,32 @@ async function main() {
       storeName: "JavArtisan Studio",
       storeSlug: "javartisan",
       storeDescription:
-        "JavArtisan Studio menghadirkan peralatan makan kayu jati solid dan gerabah tradisional berkualitas tinggi langsung dari pengrajin lokal Jepara dan Kasongan.",
-      storeLogo: "",
-      storeBanner: "",
+        "JavArtisan Studio menghadirkan peralatan makan kayu jati solid, batik tulis Solo, dan gerabah Kasongan berkualitas tinggi dari pengrajin nusantara.",
+      storeLogo: "https://cdn.artandcraft.id/stores/javartisan-logo.png",
+      storeBanner: "https://cdn.artandcraft.id/stores/javartisan-banner.png",
       storeRating: 4.9,
       followersCount: 142,
     },
   });
 
-  // 5. Create Mock Products
-  console.log("Seeding products...");
+  // 5. Create Realistic Seed Products
+  console.log("Seeding sample artisan products...");
   await prisma.product.create({
     data: {
       sellerId: sellerProfile.id,
-      categoryId: categoriesMap["pottery"],
-      subcategoryId: subcategoriesMap["pottery-keramik-kasongan"],
+      categoryId: categoriesMap["keramik-gerabah"],
+      subcategoryId: subcategoriesMap["gerabah-kasongan"],
       title: "Kendi Keramik Kasongan Klasik",
       slug: "kendi-keramik-kasongan-klasik",
       description:
-        "Kendi tanah liat tradisional yang dibuat dengan teknik putar manual oleh pengrajin Kasongan Bantul. Sangat indah digunakan sebagai dekorasi ruang tamu bergaya etnik maupun tempat penyimpanan air alami.",
+        "Kendi tanah liat tradisional yang dibuat dengan teknik putar manual oleh pengrajin Kasongan Bantul. Sangat indah digunakan sebagai dekorasi ruang tamu etnik maupun tempat penyimpanan air segar alami.",
       price: 185000.0,
-      discount: 10.0, // 10% discount
+      discount: 10.0,
       stock: 15,
-      weight: 1200.0, // 1.2 kg
+      weight: 1200.0,
       dimensions: "W:18cm H:28cm L:18cm",
       sku: "KAS-KND-001",
-      photos: [],
+      photos: ["https://cdn.artandcraft.id/products/kendi-keramik.png"],
       status: ProductStatus.ACTIVE,
     },
   });
@@ -246,19 +286,19 @@ async function main() {
   await prisma.product.create({
     data: {
       sellerId: sellerProfile.id,
-      categoryId: categoriesMap["wood-craft"],
-      subcategoryId: subcategoriesMap["wood-craft-wadah-saji-jati"],
+      categoryId: categoriesMap["kerajinan-kayu"],
+      subcategoryId: subcategoriesMap["peralatan-makan-jati"],
       title: "Mangkuk Kayu Jati Solid 20cm",
       slug: "mangkuk-kayu-jati-solid-20cm",
       description:
-        "Mangkuk saji premium yang dipahat utuh dari balok kayu jati tua pilihan asal Jepara. Dilapisi dengan finishing food-grade beewax alami, menjadikannya sangat aman untuk menyajikan makanan hangat maupun dingin.",
+        "Mangkuk saji premium yang dipahat utuh dari balok kayu jati tua pilihan asal Jepara. Dilapisi dengan finishing food-grade beeswax alami, sangat aman untuk menyajikan makanan hangat maupun dingin.",
       price: 95000.0,
       discount: 0.0,
       stock: 45,
       weight: 450.0,
       dimensions: "W:20cm H:8cm L:20cm",
       sku: "JEP-MNG-JTI",
-      photos: [],
+      photos: ["https://cdn.artandcraft.id/products/mangkuk-jati.png"],
       status: ProductStatus.ACTIVE,
     },
   });
@@ -266,19 +306,59 @@ async function main() {
   await prisma.product.create({
     data: {
       sellerId: sellerProfile.id,
-      categoryId: categoriesMap["batik"],
-      subcategoryId: subcategoriesMap["batik-batik-tulis-solo"],
+      categoryId: categoriesMap["batik-wastra"],
+      subcategoryId: subcategoriesMap["batik-tulis"],
       title: "Selendang Sutera Batik Tulis Solo",
       slug: "selendang-sutera-batik-tulis-solo",
       description:
-        "Kain selendang sutera mewah bermotif parang rusak klasik, dibatik manual menggunakan canting tulis dan lilin malam tradisional. Memerlukan waktu pengerjaan hingga 3 bulan untuk menjamin kesempurnaan motif bolak-balik.",
+        "Kain selendang sutera mewah bermotif Parang Kusumo klasik, dibatik manual menggunakan canting tulis dan malam tradisional. Memerlukan waktu pengerjaan 3 bulan untuk menjamin presisi warna.",
       price: 1250000.0,
       discount: 5.0,
       stock: 3,
       weight: 200.0,
       dimensions: "W:50cm H:1cm L:200cm",
       sku: "SOL-SLD-SUT",
-      photos: [],
+      photos: ["https://cdn.artandcraft.id/products/selendang-batik.png"],
+      status: ProductStatus.ACTIVE,
+    },
+  });
+
+  await prisma.product.create({
+    data: {
+      sellerId: sellerProfile.id,
+      categoryId: categoriesMap["anyaman-rotan"],
+      subcategoryId: subcategoriesMap["tas-rotan-bali"],
+      title: "Tas Rotan Anyaman Bulat Bali",
+      slug: "tas-rotan-anyaman-bulat-bali",
+      description:
+        "Tas selempang rotan khas Bali dengan pola anyaman ata rapi dan tali kulit asli. Dilapisi kain batik interior untuk keamanan barang bawaan Anda.",
+      price: 245000.0,
+      discount: 15.0,
+      stock: 20,
+      weight: 350.0,
+      dimensions: "W:20cm H:20cm L:8cm",
+      sku: "BAL-TAS-ROT",
+      photos: ["https://cdn.artandcraft.id/products/tas-rotan-bali.png"],
+      status: ProductStatus.ACTIVE,
+    },
+  });
+
+  await prisma.product.create({
+    data: {
+      sellerId: sellerProfile.id,
+      categoryId: categoriesMap["perhiasan-aksesori"],
+      subcategoryId: subcategoriesMap["cincin-perak-bali"],
+      title: "Cincin Perak Ukir Kawung Bali",
+      slug: "cincin-perak-ukir-kawung-bali",
+      description:
+        "Cincin terbuat dari perak murni 925 yang diukir dengan detail motif Kawung Celuk Bali. Desain etnik nan elegan cocok untuk koleksi perhiasan pria maupun wanita.",
+      price: 320000.0,
+      discount: 0.0,
+      stock: 8,
+      weight: 15.0,
+      dimensions: "W:2cm H:2cm L:2cm",
+      sku: "BAL-CNC-PRK",
+      photos: ["https://cdn.artandcraft.id/products/cincin-perak.png"],
       status: ProductStatus.ACTIVE,
     },
   });
@@ -291,7 +371,4 @@ main()
   .catch((e) => {
     console.error(e);
     process.exit(1);
-  })
-  .finally(async () => {
-    // End is handled
   });

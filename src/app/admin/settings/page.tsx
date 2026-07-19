@@ -1,5 +1,6 @@
 "use client";
 
+// Admin visual UI customization settings page
 import { useState, useEffect } from "react";
 import { 
   Settings, 

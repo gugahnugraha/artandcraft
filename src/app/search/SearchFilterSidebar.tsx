@@ -9,6 +9,7 @@ interface CategoryOption {
   id: string;
   name: string;
   slug: string;
+  subcategories?: Array<{ id: string; name: string; slug: string }>;
 }
 
 interface SearchFilterSidebarProps {
@@ -23,6 +24,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
   // Read current query params
   const currentQuery = searchParams.get("q") || "";
   const currentCategory = searchParams.get("category") || "";
+  const currentSubcategory = searchParams.get("subcategory") || "";
   const currentMinPrice = searchParams.get("min") || "";
   const currentMaxPrice = searchParams.get("max") || "";
   const currentSort = searchParams.get("sort") || "newest";
@@ -149,18 +151,42 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
             {categories.map((cat) => {
               const isSelected = currentCategory === cat.slug;
               return (
-                <button
-                  key={cat.id}
-                  onClick={() => applyFilter({ category: isSelected ? null : cat.slug })}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-left transition-colors ${
-                    isSelected
-                      ? "bg-primary/10 text-primary font-bold"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
-                  }`}
-                >
-                  <span>{cat.name}</span>
-                  {isSelected && <Check className="h-4 w-4" />}
-                </button>
+                <div key={cat.id} className="space-y-1">
+                  <button
+                    onClick={() => applyFilter({ category: isSelected ? null : cat.slug, subcategory: null })}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-left transition-colors ${
+                      isSelected
+                        ? "bg-primary/10 text-primary font-bold"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
+                    }`}
+                  >
+                    <span>{cat.name}</span>
+                    {isSelected && <Check className="h-4 w-4" />}
+                  </button>
+
+                  {/* Subcategories Accordion */}
+                  {isSelected && cat.subcategories && cat.subcategories.length > 0 && (
+                    <div className="pl-3 space-y-1 border-l-2 border-primary/30 ml-3 my-1">
+                      {cat.subcategories.map((sub) => {
+                        const isSubSelected = currentSubcategory === sub.slug;
+                        return (
+                          <button
+                            key={sub.id}
+                            onClick={() => applyFilter({ subcategory: isSubSelected ? null : sub.slug })}
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left transition-colors ${
+                              isSubSelected
+                                ? "bg-primary text-primary-foreground font-bold"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
+                            }`}
+                          >
+                            <span>{sub.name}</span>
+                            {isSubSelected && <Check className="h-3.5 w-3.5" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
