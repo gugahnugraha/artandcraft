@@ -451,6 +451,11 @@ export default function CheckoutPage() {
                   <div key={item.id} className="flex justify-between items-start gap-4">
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-foreground line-clamp-1">{item.title}</p>
+                      {item.variantName && (
+                        <p className="text-[10px] text-muted-foreground uppercase bg-accent/50 border border-border inline-block px-1.5 py-0.5 rounded mt-0.5 mb-1">
+                          {item.variantName}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">{item.quantity} x Rp {item.price.toLocaleString("id-ID")}</p>
                     </div>
                     <p className="text-sm font-bold text-foreground shrink-0">

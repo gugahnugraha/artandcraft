@@ -10,6 +10,7 @@ import WishlistButton from "@/components/ui/WishlistButton";
 import ProductGallery from "./ProductGallery";
 import AddToCartButton from "./AddToCartButton";
 import AskSellerButton from "@/components/ui/AskSellerButton";
+import RelatedProducts from "./RelatedProducts";
 import { ShieldCheck, MapPin, Star, Package, Scale, Maximize, Tag, Store, ArrowLeft, Share2 } from "lucide-react";
 
 interface PageProps {
@@ -263,9 +264,22 @@ export default async function ProductDetailPage({ params }: PageProps) {
               <div className="flex gap-3 pt-2 items-center">
                 <div className="flex-1">
                   <AddToCartButton product={{
-                    ...product,
+                    id: product.id,
+                    title: product.title,
                     price: Number(product.price),
-                    discount: Number(product.discount)
+                    discount: Number(product.discount),
+                    stock: product.stock,
+                    photos: product.photos,
+                    seller: {
+                      storeName: product.seller.storeName
+                    },
+                    variants: product.variants?.map((v: any) => ({
+                      id: v.id,
+                      name: v.name,
+                      value: v.value,
+                      stock: v.stock,
+                      price: v.price ? Number(v.price) : null
+                    }))
                   }} />
                 </div>
                 <AskSellerButton sellerProfileId={product.seller.id} productId={product.id} storeName={product.seller.storeName} variant="icon" />
@@ -330,6 +344,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </h2>
             <ProductReviews productId={product.id} />
           </div>
+
+          {/* AI Recommendations */}
+          <RelatedProducts slug={product.slug} />
 
         </div>
       </div>

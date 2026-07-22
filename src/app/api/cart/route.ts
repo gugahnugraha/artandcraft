@@ -24,6 +24,7 @@ export async function GET() {
               seller: { select: { storeName: true } },
             },
           },
+          variant: true,
         },
       },
     },
@@ -32,17 +33,24 @@ export async function GET() {
   if (!cart) return NextResponse.json({ items: [] });
 
   const items = cart.items.map((item) => {
-    const price = Number(item.product.price);
+    let basePrice = Number(item.product.price);
+    if (item.variant && item.variant.price) {
+      basePrice = Number(item.variant.price);
+    }
     const discount = Number(item.product.discount);
-    const finalPrice = discount > 0 ? price * (1 - discount / 100) : price;
+    const finalPrice = discount > 0 ? basePrice * (1 - discount / 100) : basePrice;
+    
     return {
-      id: item.product.id,
+      id: `${item.product.id}${item.variantId ? '-' + item.variantId : ''}`, // Unique cart item ID
+      productId: item.product.id,
+      variantId: item.variant?.id || undefined,
+      variantName: item.variant ? `${item.variant.name}: ${item.variant.value}` : undefined,
       title: item.product.title,
       price: finalPrice,
       photo: item.product.photos[0] || "",
       sellerName: item.product.seller.storeName,
       quantity: item.quantity,
-      maxStock: item.product.stock,
+      maxStock: item.variant ? item.variant.stock : item.product.stock,
     };
   });
 
@@ -73,17 +81,33 @@ export async function POST(req: Request) {
 
     if (items && items.length > 0) {
       // Validate products exist and have stock
-      const validItems: { cartId: string; productId: string; quantity: number }[] = [];
+      const validItems: { cartId: string; productId: string; variantId: string | null; quantity: number }[] = [];
       for (const item of items) {
         const product = await prisma.product.findUnique({
-          where: { id: item.id, status: "ACTIVE" },
+          where: { id: item.productId, status: "ACTIVE" },
           select: { stock: true },
         });
-        if (product && product.stock > 0) {
+        
+        let availableStock = product ? product.stock : 0;
+        
+        if (item.variantId) {
+          const variant = await prisma.productVariant.findUnique({
+            where: { id: item.variantId },
+            select: { stock: true }
+          });
+          if (variant) {
+            availableStock = variant.stock;
+          } else {
+            availableStock = 0;
+          }
+        }
+
+        if (availableStock > 0) {
           validItems.push({
             cartId: cart.id,
-            productId: item.id,
-            quantity: Math.min(item.quantity, product.stock),
+            productId: item.productId,
+            variantId: item.variantId || null,
+            quantity: Math.min(item.quantity, availableStock),
           });
         }
       }

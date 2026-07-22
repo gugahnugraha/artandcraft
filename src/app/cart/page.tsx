@@ -69,9 +69,14 @@ export default function CartPage() {
                           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                             {t.cart.from}: <span className="font-semibold text-primary">{item.sellerName}</span>
                           </p>
-                          <Link href={`/produk/${item.id}`} className="font-bold text-foreground hover:text-primary transition-colors line-clamp-2">
+                          <Link href={`/produk/${item.productId || item.id}`} className="font-bold text-foreground hover:text-primary transition-colors line-clamp-2">
                             {item.title}
                           </Link>
+                          {item.variantName && (
+                            <p className="text-xs text-muted-foreground mt-1 px-2 py-0.5 bg-accent/50 border border-border rounded-md inline-block">
+                              {item.variantName}
+                            </p>
+                          )}
                           <p className="font-bold text-foreground mt-1">
                             Rp {item.price.toLocaleString("id-ID")}
                           </p>

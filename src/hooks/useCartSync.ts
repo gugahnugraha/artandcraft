@@ -42,6 +42,9 @@ export function useCartSync() {
               addItem(
                 {
                   id: item.id,
+                  productId: item.productId,
+                  variantId: item.variantId,
+                  variantName: item.variantName,
                   title: item.title,
                   price: item.price,
                   photo: item.photo,
