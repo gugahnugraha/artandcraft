@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
@@ -212,6 +212,26 @@ export default function HomeClient({
     return () => clearInterval(interval);
   }, [isPaused, heroSlides.length]);
 
+  const featuredScrollRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll for featured products
+  useEffect(() => {
+    const el = featuredScrollRef.current;
+    if (!el) return;
+
+    const interval = setInterval(() => {
+      if (!el.matches(':hover')) {
+        if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
+          el.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          el.scrollBy({ left: 300, behavior: 'smooth' });
+        }
+      }
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const slide = heroSlides[currentSlide] || heroSlides[0];
 
   const nextSlide = () => {
@@ -254,7 +274,7 @@ export default function HomeClient({
         ))}
 
         {/* Text Overlay Box with Smooth Transition */}
-        <div className="relative z-10 bg-background/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.15)] p-8 sm:p-10 md:p-12 rounded-[2rem] max-w-3xl mx-4 text-center transition-all duration-700 transform hover:scale-[1.02] overflow-hidden">
+        <div className="relative z-10 bg-background/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.15)] p-6 sm:p-8 md:p-10 rounded-[2rem] w-[92%] max-w-4xl mx-auto text-center transition-all duration-700 transform hover:scale-[1.02] overflow-hidden">
           {/* Subtle gradient blob behind text */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10"></div>
           
@@ -265,12 +285,12 @@ export default function HomeClient({
           </div>
 
           {/* Title */}
-          <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 tracking-tight leading-[1.2] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+          <h1 className="font-serif text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground mb-3 tracking-tight leading-[1.2] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 whitespace-nowrap overflow-hidden text-ellipsis px-2">
             {slide.title}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-foreground/90 font-medium mb-6 text-xs sm:text-sm md:text-base leading-relaxed max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+          <p className="text-foreground/90 font-medium mb-6 text-xs sm:text-sm leading-relaxed max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 truncate px-2">
             {slide.subtitle}
           </p>
 
@@ -319,28 +339,36 @@ export default function HomeClient({
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          CATEGORIES ROW (Circular images)
+          FEATURED INTERESTS (Categories)
           ════════════════════════════════════════════════════════ */}
       <section className="py-12 bg-background border-b border-border/30">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto pb-4 hide-scrollbar justify-start md:justify-center gap-6 sm:gap-8 lg:gap-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="font-serif text-xl sm:text-2xl font-bold text-foreground mb-6">
+            Jelajahi Kategori Pilihan
+          </h2>
+          <div className="flex overflow-x-auto pb-4 hide-scrollbar justify-start gap-4 sm:gap-6 snap-x">
             {categories.map((cat: any) => (
               <Link 
                 key={cat.slug} 
                 href={`/search?category=${cat.slug}`}
-                className="flex flex-col items-center gap-3 shrink-0 group"
+                className="flex flex-col gap-3 shrink-0 group snap-start"
               >
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-border bg-card flex items-center justify-center shadow-sm group-hover:border-primary group-hover:shadow-md transition-all group-hover:scale-105 overflow-hidden relative">
+                <div className="w-44 sm:w-56 lg:w-[280px] aspect-[4/5] rounded-2xl border border-border bg-card shadow-sm group-hover:border-primary group-hover:shadow-md transition-all group-hover:-translate-y-1 overflow-hidden relative">
                   <Image 
                     src={cat.image || `/category_thumb.png`} 
                     alt={cat.name}
                     fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
                 </div>
-                <span className="text-xs sm:text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                  {cat.name}
-                </span>
+                <div className="text-center px-1 mt-1">
+                  <h3 className="text-sm sm:text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                    {cat.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Koleksi pilihan
+                  </p>
+                </div>
               </Link>
             ))}
           </div>
@@ -369,9 +397,14 @@ export default function HomeClient({
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+          <div 
+            ref={featuredScrollRef}
+            className="flex overflow-x-auto pb-6 hide-scrollbar gap-4 sm:gap-6 snap-x snap-mandatory"
+          >
             {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <div key={product.id} className="w-[280px] sm:w-[320px] md:w-[360px] shrink-0 snap-start">
+                <ProductCard product={product} layout="horizontal" />
+              </div>
             ))}
           </div>
         </div>

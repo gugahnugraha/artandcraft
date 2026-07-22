@@ -94,7 +94,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
 
       {/* Filter Content Container */}
       <div
-        className={`space-y-6 lg:p-6 lg:glass-card lg:bg-background/80 lg:rounded-[2rem] lg:border lg:border-border/50 lg:shadow-sm ${
+        className={`space-y-6 lg:p-6 lg:glass-card lg:bg-background/80 lg:rounded-[2rem] lg:border-2 lg:border-primary/20 lg:shadow-sm ${
           mobileFilterOpen ? "block" : "hidden lg:block"
         }`}
       >

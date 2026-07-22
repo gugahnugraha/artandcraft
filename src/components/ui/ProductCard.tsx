@@ -18,6 +18,7 @@ interface ProductCardProps {
   rating?: number;
   reviewsCount?: number;
   product?: any;
+  layout?: "vertical" | "horizontal";
 }
 
 export default function ProductCard(props: ProductCardProps) {
@@ -37,11 +38,93 @@ export default function ProductCard(props: ProductCardProps) {
   const hasDiscount = discount > 0;
   const finalPrice = hasDiscount ? price * (1 - discount / 100) : price;
 
+  const isHorizontal = props.layout === "horizontal";
+
+  if (isHorizontal) {
+    return (
+      <Link href={`/produk/${slug}`} className="group relative block w-full hover-lift rounded-2xl transition-all overflow-hidden aspect-[4/3] sm:aspect-[3/2] border-2 border-primary/20 hover:border-primary/40 hover:shadow-lg">
+        {/* Background Image full width & height */}
+        <div className="absolute inset-0">
+          {photos && photos.length > 0 ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photos[0]}
+              alt={title}
+              className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700 ease-out"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-center select-none bg-muted/40 group-hover:scale-105 transition-transform duration-500">
+              <span className="font-serif text-xl font-light text-muted-foreground/30">
+                {categoryName ? categoryName.charAt(0) : (title?.charAt(0) || "A")}
+              </span>
+            </div>
+          )}
+        </div>
+        
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+        
+        {/* Floating Text at the bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 flex flex-col justify-end transform translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
+          <h3 className="font-bold text-white text-sm sm:text-base leading-snug line-clamp-2 drop-shadow-md">
+            {title}
+          </h3>
+          <div className="flex items-center gap-1.5 mt-1.5 opacity-90">
+            <span className="text-[10px] sm:text-xs text-white/80 line-clamp-1">{sellerName}</span>
+            {rating > 0 && (
+              <div className="flex items-center gap-0.5 ml-auto shrink-0 text-white">
+                <span className="text-[10px] sm:text-xs font-semibold">{rating.toFixed(1)}</span>
+                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              </div>
+            )}
+          </div>
+          <div className="mt-2.5 flex items-center gap-2 flex-wrap drop-shadow-md">
+            {hasDiscount ? (
+              <>
+                <span className="font-bold text-white text-sm sm:text-base">
+                  Rp {finalPrice.toLocaleString("id-ID")}
+                </span>
+                <span className="text-[10px] text-white/60 line-through hidden sm:inline">
+                  Rp {price.toLocaleString("id-ID")}
+                </span>
+                <span className="text-[10px] font-bold text-white bg-red-600/90 px-1.5 py-0.5 rounded-full">
+                  -{discount}%
+                </span>
+              </>
+            ) : (
+              <span className="font-bold text-white text-sm sm:text-base">
+                Rp {price.toLocaleString("id-ID")}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Wishlist Button floating top-right */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsWishlisted(!isWishlisted);
+          }}
+          className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/20 hover:bg-white/95 backdrop-blur-md flex items-center justify-center text-white hover:text-foreground transition-all shadow-sm hover:scale-110 active:scale-95 z-20 group/wish"
+          aria-label="Add to Wishlist"
+        >
+          <Heart
+            className={`h-4 w-4 transition-colors ${
+              isWishlisted ? "fill-red-500 text-red-500" : "text-white group-hover/wish:text-muted-foreground/80"
+            }`}
+          />
+        </button>
+      </Link>
+    );
+  }
+
   return (
     <Link href={`/produk/${slug}`} className="group flex flex-col block relative w-full hover-lift p-2 -m-2 rounded-2xl transition-all">
       
       {/* Image container */}
-      <div className="relative w-full aspect-[4/3] sm:aspect-square bg-muted/30 rounded-xl overflow-hidden mb-3 transition-all group-hover:shadow-md">
+      <div className="relative w-full aspect-[4/3] sm:aspect-square bg-muted/30 rounded-xl border-2 border-primary/20 overflow-hidden mb-3 transition-all group-hover:shadow-md group-hover:border-primary/40">
         {photos && photos.length > 0 ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

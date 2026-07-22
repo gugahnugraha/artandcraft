@@ -123,7 +123,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <div className="mx-auto max-w-7xl">
         
         {/* Page Header */}
-        <div className="mb-10 relative overflow-hidden glass-card bg-background/60 p-8 sm:p-10 rounded-3xl border border-border/50 shadow-sm">
+        <div className="mb-10 relative overflow-hidden glass-card bg-background/60 p-8 sm:p-10 rounded-3xl border-2 border-primary/20 shadow-sm">
           {/* Subtle decoration */}
           <div className="absolute top-0 right-0 w-72 h-72 bg-primary/10 rounded-full blur-[80px] -z-10 translate-x-1/4 -translate-y-1/4" />
           
@@ -175,7 +175,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               </div>
             ) : (
               /* Empty State */
-              <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-card rounded-2xl border border-border/60">
+              <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-card rounded-2xl border-2 border-primary/20">
                 <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
                   <PackageX className="h-8 w-8" />
                 </div>

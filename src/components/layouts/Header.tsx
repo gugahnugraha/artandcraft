@@ -106,7 +106,7 @@ export default function Header() {
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         
         {/* TOP ROW: Logo, Search, Actions */}
-        <div className="flex h-16 md:h-20 items-center justify-between gap-4">
+        <div className="flex h-16 md:h-16 items-center justify-between gap-4">
 
           {/* Logo */}
           <div className="flex items-center gap-3 shrink-0">
@@ -273,7 +273,7 @@ export default function Header() {
         
         {/* BOTTOM ROW: Secondary Navigation (Aesthetic Main Product Types) */}
         <nav 
-          className="hidden md:flex items-center justify-center gap-6 lg:gap-8 h-10 pb-2 relative border-t border-border/40 pt-1"
+          className="hidden md:flex items-center justify-center gap-6 lg:gap-8 h-10 pb-1 relative border-t border-border/40"
           onMouseLeave={() => setActiveCategoryHover(null)}
         >
           {/* All Categories Dropdown Trigger */}
@@ -291,7 +291,7 @@ export default function Header() {
 
             {/* Mega Menu Dropdown for ALL Categories */}
             {activeCategoryHover === "all-categories-trigger" && (
-              <div className="absolute left-0 top-full mt-2 w-[720px] rounded-3xl glass-card p-6 shadow-2xl z-50 animate-in fade-in slide-in-from-top-4 duration-300 grid grid-cols-3 gap-5 border-t-white/40">
+              <div className="absolute left-0 top-full mt-2 w-[720px] rounded-3xl bg-card border border-border p-6 shadow-2xl z-50 animate-in fade-in slide-in-from-top-4 duration-300 grid grid-cols-3 gap-5">
                 {categories.slice(0, 9).map((cat) => (
                   <div key={cat.id} className="space-y-1.5 p-3 rounded-2xl hover:bg-muted/40 transition-all hover:shadow-sm group/item">
                     <Link
