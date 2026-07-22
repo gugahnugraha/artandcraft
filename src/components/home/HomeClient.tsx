@@ -249,35 +249,37 @@ export default function HomeClient({
               priority={index === 0}
             />
             {/* Subtle dark overlay for contrast */}
-            <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"></div>
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
           </div>
         ))}
 
         {/* Text Overlay Box with Smooth Transition */}
-        <div className="relative z-10 bg-background/90 backdrop-blur-md p-6 sm:p-10 md:p-12 rounded-3xl shadow-2xl max-w-2xl mx-4 text-center border border-border/50 transition-all duration-500 transform">
+        <div className="relative z-10 bg-background/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.15)] p-8 sm:p-10 md:p-12 rounded-[2rem] max-w-3xl mx-4 text-center transition-all duration-700 transform hover:scale-[1.02] overflow-hidden">
+          {/* Subtle gradient blob behind text */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -z-10"></div>
           
           {/* Badge Tag */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-3 animate-fade-in">
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/15 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-4 animate-in fade-in slide-in-from-bottom-2 duration-500 shadow-sm backdrop-blur-sm">
             <Sparkles className="h-3.5 w-3.5" />
             <span>{slide.tag}</span>
           </div>
 
           {/* Title */}
-          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3 tracking-tight leading-tight">
+          <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 tracking-tight leading-[1.2] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
             {slide.title}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-muted-foreground mb-6 text-xs sm:text-sm md:text-base leading-relaxed max-w-xl mx-auto">
+          <p className="text-foreground/90 font-medium mb-6 text-xs sm:text-sm md:text-base leading-relaxed max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
             {slide.subtitle}
           </p>
 
           {/* Button */}
           <Link 
             href={slide.btnHref} 
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-7 py-3.5 text-xs sm:text-sm font-bold hover:bg-primary/90 transition-all shadow-md active:scale-95"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-4 text-sm font-bold hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(var(--primary),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary),0.5)] active:scale-95 group animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300"
           >
-            {slide.btnText} <ArrowRight className="h-4 w-4" />
+            {slide.btnText} <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
@@ -328,9 +330,9 @@ export default function HomeClient({
                 href={`/search?category=${cat.slug}`}
                 className="flex flex-col items-center gap-3 shrink-0 group"
               >
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-border bg-card flex items-center justify-center p-3 shadow-sm group-hover:border-primary group-hover:shadow-md transition-all group-hover:scale-105 overflow-hidden relative">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-border bg-card flex items-center justify-center shadow-sm group-hover:border-primary group-hover:shadow-md transition-all group-hover:scale-105 overflow-hidden relative">
                   <Image 
-                    src={`/category_thumb.png`} 
+                    src={cat.image || `/category_thumb.png`} 
                     alt={cat.name}
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-300"

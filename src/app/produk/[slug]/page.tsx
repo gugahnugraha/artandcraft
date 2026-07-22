@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { id } from "@/locales/id";
+import { en } from "@/locales/en";
 import ProductReviews from "./ProductReviews";
 import WishlistButton from "@/components/ui/WishlistButton";
 import ProductGallery from "./ProductGallery";
@@ -22,7 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       where: { slug },
       include: { seller: true, category: true },
     });
-    if (!product) return { title: "Produk Tidak Ditemukan | ArtAndCraft.id" };
+    if (!product) return { title: "Product Not Found | ArtAndCraft.id" };
     const price = Number(product.price);
     const discount = Number(product.discount);
     const finalPrice = discount > 0 ? price * (1 - discount / 100) : price;
@@ -41,12 +44,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
     };
   } catch {
-    return { title: "Produk | ArtAndCraft.id" };
+    return { title: "Product | ArtAndCraft.id" };
   }
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
+
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : id;
 
   let product: any = null;
   let dbOnline = false;
@@ -139,9 +146,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-muted-foreground mb-6">
-            <Link href="/" className="hover:text-primary transition-colors">Beranda</Link>
+            <Link href="/" className="hover:text-primary transition-colors">{t.product.home}</Link>
             <span>/</span>
-            <Link href="/search" className="hover:text-primary transition-colors">Produk</Link>
+            <Link href="/search" className="hover:text-primary transition-colors">{t.product.products}</Link>
             <span>/</span>
             <Link href={`/search?category=${product.category?.slug || ""}`} className="hover:text-primary transition-colors">{product.category.name}</Link>
             <span>/</span>
@@ -179,10 +186,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   <div className="flex items-center gap-1 text-amber-500 font-semibold">
                     <Star className="h-4 w-4 fill-amber-500" />
                     <span>{product.seller.storeRating.toFixed(1)}</span>
-                    <span className="text-muted-foreground font-normal">(ulasan toko)</span>
+                    <span className="text-muted-foreground font-normal">({t.product.store_reviews})</span>
                   </div>
                   <span className="text-border">|</span>
-                  <span>Stok: <strong className="text-foreground">{product.stock} unit</strong></span>
+                  <span>{t.product.stock_label}<strong className="text-foreground">{product.stock} {t.product.unit}</strong></span>
                 </div>
               </div>
 
@@ -203,14 +210,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 </div>
                 {hasDiscount && (
                   <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
-                    Hemat Rp {(price - finalPrice).toLocaleString("id-ID")}
+                    {t.product.save_money}{(price - finalPrice).toLocaleString("id-ID")}
                   </p>
                 )}
               </div>
 
               {/* Description */}
               <div>
-                <h2 className="font-semibold text-sm text-foreground mb-2">Deskripsi Produk</h2>
+                <h2 className="font-semibold text-sm text-foreground mb-2">{t.product.description}</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
               </div>
 
@@ -220,7 +227,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
                     <Scale className="h-4 w-4 text-primary shrink-0" />
                     <div>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Berat</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t.product.weight_label}</p>
                       <p className="text-xs font-semibold text-foreground">{product.weight}g</p>
                     </div>
                   </div>
@@ -229,7 +236,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
                     <Maximize className="h-4 w-4 text-primary shrink-0" />
                     <div>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Dimensi</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t.product.dimension_label}</p>
                       <p className="text-xs font-semibold text-foreground">{product.dimensions}</p>
                     </div>
                   </div>
@@ -238,7 +245,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
                     <Tag className="h-4 w-4 text-primary shrink-0" />
                     <div>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">SKU</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t.product.sku_label}</p>
                       <p className="text-xs font-semibold text-foreground font-mono">{product.sku}</p>
                     </div>
                   </div>
@@ -246,8 +253,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
                   <Package className="h-4 w-4 text-primary shrink-0" />
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Stok</p>
-                    <p className="text-xs font-semibold text-foreground">{product.stock} unit</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t.product.stock}</p>
+                    <p className="text-xs font-semibold text-foreground">{product.stock} {t.product.unit}</p>
                   </div>
                 </div>
               </div>
@@ -266,7 +273,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
               </div>
 
               <p className="text-xs text-muted-foreground">
-                🛡️ Pembayaran aman & terlindungi. Pengiriman ke seluruh Indonesia.
+                {t.product.secure_payment}
               </p>
             </div>
           </div>
@@ -275,7 +282,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           <div className="mt-12 bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
             <h2 className="font-serif text-lg font-bold text-foreground mb-5 flex items-center gap-2">
               <Store className="h-5 w-5 text-primary" />
-              Tentang Pengrajin
+              {t.product.about_artisan}
             </h2>
 
             <div className="flex flex-col sm:flex-row gap-6 items-start">
@@ -291,10 +298,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1 text-amber-500 font-semibold">
                         <Star className="h-3 w-3 fill-amber-500" />
-                        {product.seller.storeRating.toFixed(1)} Rating
+                        {product.seller.storeRating.toFixed(1)} {t.product.rating}
                       </span>
-                      <span>{product.seller._count.products} Produk</span>
-                      <span>{product.seller.followersCount} Pengikut</span>
+                      <span>{product.seller._count.products} {t.product.products_count}</span>
+                      <span>{product.seller.followersCount} {t.product.followers_count}</span>
                     </div>
                   </div>
                   <Link
@@ -302,15 +309,15 @@ export default async function ProductDetailPage({ params }: PageProps) {
                     className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-all"
                   >
                     <Store className="h-3 w-3" />
-                    Kunjungi Toko
+                    {t.product.visit_store}
                   </Link>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  {product.seller.storeDescription || "Pengrajin UMKM lokal terverifikasi di ArtAndCraft.id."}
+                  {product.seller.storeDescription || t.product.default_store_desc}
                 </p>
                 <div className="flex items-center gap-1.5 mt-3 text-xs text-green-600 dark:text-green-400 font-medium">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  Pengrajin UMKM Terverifikasi
+                  {t.product.verified_artisan}
                 </div>
               </div>
             </div>
@@ -319,7 +326,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           {/* Product Reviews */}
           <div className="mt-12 bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
             <h2 className="font-serif text-2xl font-bold text-foreground mb-8 border-b border-border pb-4">
-              Ulasan Pembeli
+              {t.product.reviews}
             </h2>
             <ProductReviews productId={product.id} />
           </div>

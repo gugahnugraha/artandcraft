@@ -30,42 +30,44 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full border-t border-border bg-card text-card-foreground transition-colors">
+    <footer className="w-full border-t border-border bg-background text-foreground transition-colors">
       
       {/* Newsletter Section */}
-      <div className="border-b border-border/60 bg-muted/20 py-10 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <h3 className="font-serif text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-              <Heart className="h-5 w-5 text-primary fill-primary" />
+      <div className="border-b border-border/60 bg-gradient-to-r from-primary/5 via-background to-primary/5 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Subtle decorative blob */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+          <div className="max-w-xl">
+            <h3 className="font-serif text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-3">
+              <span className="p-2 bg-primary/10 rounded-full text-primary"><Heart className="h-5 w-5 fill-primary" /></span>
               {t.footer.newsletter_title}
             </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
               {t.footer.newsletter_subtitle}
             </p>
           </div>
 
-          <form onSubmit={handleSubscribe} className="w-full sm:w-auto flex items-center gap-2 max-w-md">
+          <form onSubmit={handleSubscribe} className="w-full sm:w-auto flex items-center gap-2 max-w-md w-full">
             {subscribed ? (
-              <div className="px-4 py-2.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
-                {t.footer.newsletter_success}
+              <div className="px-5 py-3 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold flex-1 text-center animate-fade-in">
+                ✨ {t.footer.newsletter_success} ✨
               </div>
             ) : (
-              <div className="relative w-full flex items-center">
+              <div className="relative w-full flex items-center group">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t.footer.newsletter_placeholder}
                   required
-                  className="w-full rounded-full border border-border bg-background py-2.5 pl-4 pr-12 text-xs text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none transition-all shadow-sm"
+                  className="w-full rounded-full border-2 border-border/70 bg-background/50 backdrop-blur-sm py-3.5 pl-6 pr-32 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all duration-300 shadow-inner group-hover:border-primary/50"
                 />
                 <button
                   type="submit"
-                  className="absolute right-1 top-1 bottom-1 px-4 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors flex items-center gap-1"
+                  className="absolute right-1.5 top-1.5 bottom-1.5 px-6 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 shadow-md"
                 >
-                  <Send className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">{t.footer.newsletter_btn}</span>
+                  <Send className="h-4 w-4" />
                 </button>
               </div>
             )}

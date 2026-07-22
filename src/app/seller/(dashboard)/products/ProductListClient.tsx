@@ -5,6 +5,7 @@ import Link from "next/link";
 import { deleteProduct } from "@/features/products/actions/delete-product";
 import { Search, Edit2, Trash2, ShieldAlert, Sparkles, Filter, Loader2, AlertCircle } from "lucide-react";
 import { ProductStatus } from "@prisma/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SerializedProduct {
   id: string;
@@ -23,6 +24,7 @@ interface SerializedProduct {
 }
 
 export default function ProductListClient({ initialProducts }: { initialProducts: SerializedProduct[] }) {
+  const { t } = useLanguage();
   const [products, setProducts] = useState<SerializedProduct[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -30,7 +32,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
   const [error, setError] = useState<string | null>(null);
 
   const handleDelete = async (productId: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus produk ini secara permanen?")) return;
+    if (!confirm(t.seller_products.confirm_delete)) return;
 
     setDeletingId(productId);
     setError(null);
@@ -45,7 +47,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
         setDeletingId(null);
       }
     } catch (err) {
-      setError("Gagal menghapus produk karena masalah jaringan.");
+      setError(t.seller_products.err_delete);
       setDeletingId(null);
     }
   };
@@ -81,7 +83,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
           </div>
           <input
             type="text"
-            placeholder="Cari nama produk atau SKU..."
+            placeholder={t.seller_products.search_placeholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-4 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
@@ -96,11 +98,11 @@ export default function ProductListClient({ initialProducts }: { initialProducts
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-lg border border-border bg-background py-2 px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all w-full sm:w-auto"
           >
-            <option value="ALL">Semua Status</option>
-            <option value="ACTIVE">Aktif</option>
-            <option value="DRAFT">Draf</option>
-            <option value="OUT_OF_STOCK">Habis</option>
-            <option value="ARCHIVED">Diarsipkan</option>
+            <option value="ALL">{t.seller_products.all_status}</option>
+            <option value="ACTIVE">{t.seller_products.status_active}</option>
+            <option value="DRAFT">{t.seller_products.status_draft}</option>
+            <option value="OUT_OF_STOCK">{t.seller_products.status_out_of_stock}</option>
+            <option value="ARCHIVED">{t.seller_products.status_archived}</option>
           </select>
         </div>
       </div>
@@ -111,11 +113,11 @@ export default function ProductListClient({ initialProducts }: { initialProducts
           <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
             <ShieldAlert className="h-6 w-6" />
           </div>
-          <h3 className="font-serif text-xl font-bold text-foreground mb-2">Produk Tidak Ditemukan</h3>
+          <h3 className="font-serif text-xl font-bold text-foreground mb-2">{t.seller_products.not_found_title}</h3>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
             {products.length === 0
-              ? "Toko Anda belum memiliki produk terdaftar. Mulai unggah produk kerajinan tangan Anda sekarang."
-              : "Tidak ada produk yang cocok dengan pencarian atau filter Anda."}
+              ? t.seller_products.not_found_empty
+              : t.seller_products.not_found_search}
           </p>
           {products.length === 0 && (
             <Link
@@ -123,7 +125,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
               className="inline-flex items-center gap-1 bg-primary text-primary-foreground text-sm font-semibold rounded-full px-5 py-2.5 hover:bg-primary/95 transition-all shadow-md"
             >
               <Sparkles className="h-4 w-4" />
-              <span>Unggah Produk Pertama</span>
+              <span>{t.seller_products.upload_first}</span>
             </Link>
           )}
         </div>
@@ -165,12 +167,12 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                     }`}
                   >
                     {prod.status === "ACTIVE"
-                      ? "Aktif"
+                      ? t.seller_products.status_active
                       : prod.status === "DRAFT"
-                      ? "Draf"
+                      ? t.seller_products.status_draft
                       : prod.status === "OUT_OF_STOCK"
-                      ? "Stok Habis"
-                      : "Diarsipkan"}
+                      ? t.seller_products.status_out_of_stock
+                      : t.seller_products.status_archived}
                   </span>
 
                   {/* SKU */}
@@ -204,7 +206,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                     </div>
 
                     <span className="text-xs text-muted-foreground font-medium">
-                      Stok: <strong className="text-foreground">{prod.stock} unit</strong>
+                      {t.seller_products.stock} <strong className="text-foreground">{prod.stock}{t.seller_products.unit}</strong>
                     </span>
                   </div>
 
@@ -215,7 +217,7 @@ export default function ProductListClient({ initialProducts }: { initialProducts
                       className="flex-1 flex items-center justify-center gap-1 rounded-md border border-border bg-card py-2 text-foreground hover:bg-accent hover:text-accent-foreground transition-colors text-center"
                     >
                       <Edit2 className="h-3.5 w-3.5" />
-                      <span>Edit</span>
+                      <span>{t.seller_products.edit}</span>
                     </Link>
                     
                     <button

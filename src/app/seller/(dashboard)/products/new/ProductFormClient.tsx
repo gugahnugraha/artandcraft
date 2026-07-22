@@ -22,6 +22,7 @@ import {
   Upload,
 } from "lucide-react";
 import { ProductStatus } from "@prisma/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Subcategory {
   id: string;
@@ -61,6 +62,7 @@ export default function ProductFormClient({
   initialProduct?: InitialProduct;
 }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -114,14 +116,14 @@ export default function ProductFormClient({
 
       const result = await res.json();
       if (!res.ok) {
-        setError(result.error || "Gagal mengunggah foto.");
+        setError(result.error || t.seller_products.err_upload_photo);
       } else {
         const newPhotos = [...uploadedPhotos, result.url];
         setUploadedPhotos(newPhotos);
         setValue("photos", newPhotos, { shouldValidate: true });
       }
     } catch (err) {
-      setError("Masalah koneksi. Gagal menghubungi endpoint upload.");
+      setError(t.seller_products.err_network_upload);
     } finally {
       setIsUploading(false);
     }
@@ -150,7 +152,7 @@ export default function ProductFormClient({
         router.refresh();
       }
     } catch (err) {
-      setError("Gagal menyimpan produk karena masalah jaringan.");
+      setError(t.seller_products.err_save_network);
       setIsSubmitting(false);
     }
   };
@@ -172,7 +174,7 @@ export default function ProductFormClient({
         <div className="space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/40 pb-2 flex items-center gap-2">
             <ImageIcon className="h-4.5 w-4.5 text-primary" />
-            Foto Produk (Minimal 1)
+            {t.seller_products.photo_title}
           </h2>
           
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -181,7 +183,7 @@ export default function ProductFormClient({
             {uploadedPhotos.map((photo, idx) => (
               <div key={idx} className="aspect-square relative rounded-xl border border-border overflow-hidden bg-accent/20 group">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo} alt={`Foto ${idx + 1}`} className="object-cover w-full h-full" />
+                <img src={photo} alt={`${t.seller_products.photo_alt}${idx + 1}`} className="object-cover w-full h-full" />
                 <button
                   type="button"
                   onClick={() => removePhoto(idx)}
@@ -200,7 +202,7 @@ export default function ProductFormClient({
                 ) : (
                   <>
                     <Upload className="h-6 w-6 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground font-semibold">Unggah Foto</span>
+                    <span className="text-xs text-muted-foreground font-semibold">{t.seller_products.upload_photo}</span>
                   </>
                 )}
                 <input
@@ -223,15 +225,15 @@ export default function ProductFormClient({
         <div className="space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/40 pb-2 flex items-center gap-2">
             <FileText className="h-4.5 w-4.5 text-primary" />
-            Detail Informasi Karya
+            {t.seller_products.info_title}
           </h2>
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-bold text-foreground mb-1.5">Nama Produk / Karya</label>
+            <label className="block text-xs font-bold text-foreground mb-1.5">{t.seller_products.prod_name}</label>
             <input
               type="text"
-              placeholder="Contoh: Kendi Tanah Liat Kasongan Klasik"
+              placeholder={t.seller_products.prod_name_placeholder}
               className={`w-full rounded-lg border bg-background py-2.5 px-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
                 errors.title ? "border-destructive" : "border-border"
               }`}
@@ -242,10 +244,10 @@ export default function ProductFormClient({
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-bold text-foreground mb-1.5">Deskripsi Detail</label>
+            <label className="block text-xs font-bold text-foreground mb-1.5">{t.seller_products.desc}</label>
             <textarea
               rows={5}
-              placeholder="Jelaskan mengenai keunikan produk, bahan yang digunakan, dan kisah pembuatannya..."
+              placeholder={t.seller_products.desc_placeholder}
               className={`w-full rounded-lg border bg-background py-2.5 px-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
                 errors.description ? "border-destructive" : "border-border"
               }`}
@@ -261,19 +263,19 @@ export default function ProductFormClient({
         <div className="space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/40 pb-2 flex items-center gap-2">
             <Layers className="h-4.5 w-4.5 text-primary" />
-            Kategori
+            {t.seller_products.category_title}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* Category Select */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1.5">Kategori Utama</label>
+              <label className="block text-xs font-bold text-foreground mb-1.5">{t.seller_products.main_category}</label>
               <select
                 className="w-full rounded-lg border border-border bg-background py-2.5 px-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
                 {...register("categoryId")}
               >
-                <option value="">-- Pilih Kategori --</option>
+                <option value="">{t.seller_products.select_category}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -287,13 +289,13 @@ export default function ProductFormClient({
 
             {/* Subcategory Select */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1.5">Subkategori (Opsional)</label>
+              <label className="block text-xs font-bold text-foreground mb-1.5">{t.seller_products.subcategory}</label>
               <select
                 disabled={!watchCategoryId}
                 className="w-full rounded-lg border border-border bg-background py-2.5 px-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all disabled:opacity-50"
                 {...register("subcategoryId")}
               >
-                <option value="">-- Pilih Subkategori --</option>
+                <option value="">{t.seller_products.select_subcategory}</option>
                 {activeSubcategories.map((sub) => (
                   <option key={sub.id} value={sub.id}>
                     {sub.name}
@@ -309,13 +311,13 @@ export default function ProductFormClient({
         <div className="space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/40 pb-2 flex items-center gap-2">
             <Package className="h-4.5 w-4.5 text-primary" />
-            Harga, Stok & Inventori
+            {t.seller_products.inventory_title}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Price */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1.5">Harga (Rp)</label>
+              <label className="block text-xs font-bold text-foreground mb-1.5">{t.seller_products.price_label}</label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -334,7 +336,7 @@ export default function ProductFormClient({
 
             {/* Discount */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1.5">Diskon (%)</label>
+              <label className="block text-xs font-bold text-foreground mb-1.5">{t.seller_products.discount_label}</label>
               <input
                 type="number"
                 placeholder="10"
@@ -348,7 +350,7 @@ export default function ProductFormClient({
 
             {/* Stock */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1.5">Jumlah Stok</label>
+              <label className="block text-xs font-bold text-foreground mb-1.5">{t.seller_products.stock_label}</label>
               <input
                 type="number"
                 placeholder="5"
@@ -365,7 +367,7 @@ export default function ProductFormClient({
             {/* Weight */}
             <div>
               <label className="block text-xs font-bold text-foreground mb-1.5 flex items-center gap-1">
-                <Scale className="h-3.5 w-3.5" /> Berat (Gram)
+                <Scale className="h-3.5 w-3.5" /> {t.seller_products.weight_label}
               </label>
               <input
                 type="number"
@@ -381,7 +383,7 @@ export default function ProductFormClient({
             {/* Dimensions */}
             <div>
               <label className="block text-xs font-bold text-foreground mb-1.5 flex items-center gap-1">
-                <Maximize className="h-3.5 w-3.5" /> Dimensi (P x L x T)
+                <Maximize className="h-3.5 w-3.5" /> {t.seller_products.dim_label}
               </label>
               <input
                 type="text"
@@ -393,7 +395,7 @@ export default function ProductFormClient({
 
             {/* SKU */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1.5">Kode SKU (Unik)</label>
+              <label className="block text-xs font-bold text-foreground mb-1.5">{t.seller_products.sku_label}</label>
               <input
                 type="text"
                 placeholder="KAS-POT-V01"
@@ -409,13 +411,13 @@ export default function ProductFormClient({
           
           {/* Status select */}
           <div className="w-full sm:w-auto">
-            <label className="block text-xs font-bold text-foreground mb-1.5">Status Produk</label>
+            <label className="block text-xs font-bold text-foreground mb-1.5">{t.seller_products.status_label}</label>
             <select
               className="rounded-lg border border-border bg-background py-2 px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all w-full sm:w-auto"
               {...register("status")}
             >
-              <option value="ACTIVE">Aktif (Langsung Terbit)</option>
-              <option value="DRAFT">Draf (Simpan Saja)</option>
+              <option value="ACTIVE">{t.seller_products.status_active_full}</option>
+              <option value="DRAFT">{t.seller_products.status_draft_full}</option>
             </select>
           </div>
 
@@ -429,10 +431,10 @@ export default function ProductFormClient({
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Menyimpan Produk...</span>
+                  <span>{t.seller_products.saving}</span>
                 </>
               ) : (
-                <span>{initialProduct ? "Simpan Perubahan" : "Terbitkan Produk"}</span>
+                <span>{initialProduct ? t.seller_products.save_changes : t.seller_products.publish}</span>
               )}
             </button>
           </div>

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
-import { id } from "date-fns/locale";
+import { id, enUS } from "date-fns/locale";
 import {
   CreditCard,
   Users,
@@ -12,6 +12,9 @@ import {
   Truck,
 } from "lucide-react";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { id as idLocale } from "@/locales/id";
+import { en } from "@/locales/en";
 
 export const dynamic = "force-dynamic";
 
@@ -46,32 +49,36 @@ export default async function AdminDashboardPage() {
     },
   });
 
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : idLocale;
+
   const stats = [
     {
-      label: "Gross Merchandise Value",
+      label: t.admin.gmv,
       value: `Rp ${gmv.toLocaleString("id-ID")}`,
-      desc: "Total transaksi sukses terbayar",
+      desc: t.admin.gmv_desc,
       icon: TrendingUp,
       color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400",
     },
     {
-      label: "Total Pengguna",
+      label: t.admin.users,
       value: totalUsers.toString(),
-      desc: "Pembeli, penjual & administrator",
+      desc: t.admin.users_desc,
       icon: Users,
       color: "text-blue-600 bg-blue-100 dark:bg-blue-950/40 dark:text-blue-400",
     },
     {
-      label: "Toko Pengrajin",
+      label: t.admin.stores,
       value: totalStores.toString(),
-      desc: "UMKM terdaftar di platform",
+      desc: t.admin.stores_desc,
       icon: Store,
       color: "text-amber-600 bg-amber-100 dark:bg-amber-950/40 dark:text-amber-400",
     },
     {
-      label: "Total Pesanan",
+      label: t.admin.orders,
       value: totalOrders.toString(),
-      desc: "Semua pesanan (berbayar/belum)",
+      desc: t.admin.orders_desc,
       icon: CreditCard,
       color: "text-violet-600 bg-violet-100 dark:bg-violet-950/40 dark:text-violet-400",
     },
@@ -81,9 +88,9 @@ export default async function AdminDashboardPage() {
     <div className="space-y-8">
       {/* Page Title */}
       <div>
-        <h1 className="font-serif text-3xl font-bold text-foreground">Ringkasan Platform</h1>
+        <h1 className="font-serif text-3xl font-bold text-foreground">{t.admin.title}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Pantau status kesehatan platform dan transaksi teraktual.
+          {t.admin.subtitle}
         </p>
       </div>
 
@@ -110,27 +117,27 @@ export default async function AdminDashboardPage() {
       <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
         <div className="p-5 border-b border-border flex items-center justify-between">
           <h2 className="font-bold text-foreground flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" /> Transaksi Terbaru
+            <Clock className="h-5 w-5 text-primary" /> {t.admin.recent_transactions}
           </h2>
           <Link href="/admin/transactions" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-            Lihat semua <ChevronRight className="h-3 w-3" />
+            {t.admin.view_all} <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
 
         <div className="overflow-x-auto">
           {recentOrders.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground text-sm">
-              Belum ada pesanan masuk di platform.
+              {t.admin.no_orders}
             </div>
           ) : (
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="bg-muted/30 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  <th className="p-4">ID Order</th>
-                  <th className="p-4">Pembeli</th>
-                  <th className="p-4">Total</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Tanggal</th>
+                  <th className="p-4">{t.admin.col_id}</th>
+                  <th className="p-4">{t.admin.col_buyer}</th>
+                  <th className="p-4">{t.admin.col_total}</th>
+                  <th className="p-4">{t.admin.col_status}</th>
+                  <th className="p-4">{t.admin.col_date}</th>
                 </tr>
               </thead>
               <tbody>
@@ -159,7 +166,7 @@ export default async function AdminDashboardPage() {
                         </span>
                       </td>
                       <td className="p-4 text-xs text-muted-foreground">
-                        {format(new Date(order.createdAt), "d MMMM yyyy HH:mm", { locale: id })}
+                        {format(new Date(order.createdAt), "d MMMM yyyy HH:mm", { locale: lang === "en" ? enUS : id })}
                       </td>
                     </tr>
                   );

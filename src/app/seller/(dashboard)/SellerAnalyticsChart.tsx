@@ -1,6 +1,7 @@
 "use client";
 
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChartDataPoint {
   date: string;
@@ -12,12 +13,13 @@ interface SellerAnalyticsChartProps {
 }
 
 export default function SellerAnalyticsChart({ data }: SellerAnalyticsChartProps) {
+  const { t } = useLanguage();
 
   // If no data, show a placeholder
   if (!data || data.length === 0) {
     return (
       <div className="h-[300px] w-full flex items-center justify-center text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border">
-        Belum ada data penjualan yang cukup.
+        {t.seller_dashboard.chart_no_data}
       </div>
     );
   }

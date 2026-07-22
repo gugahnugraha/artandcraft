@@ -20,9 +20,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("language") as Language;
+    const saved = localStorage.getItem("NEXT_LOCALE") as Language;
     if (saved === "en" || saved === "id") {
       setLanguageState(saved);
+      document.cookie = `NEXT_LOCALE=${saved}; path=/; max-age=31536000`;
     }
 
     // ─── Theme Sync & Hot Reload ───
@@ -63,7 +64,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem("language", lang);
+    localStorage.setItem("NEXT_LOCALE", lang);
+    document.cookie = `NEXT_LOCALE=${lang}; path=/; max-age=31536000`;
   };
 
   const t = language === "en" ? en : id;

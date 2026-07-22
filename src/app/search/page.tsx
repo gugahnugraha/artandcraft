@@ -3,6 +3,9 @@ import ProductCard from "@/components/ui/ProductCard";
 import SearchFilterSidebar from "./SearchFilterSidebar";
 import { Search, PackageX } from "lucide-react";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { id } from "@/locales/id";
+import { en } from "@/locales/en";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +38,10 @@ export async function generateMetadata({ searchParams }: SearchPageProps): Promi
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q, category, subcategory, min, max, sort } = await searchParams;
+  
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : id;
 
   // 1. Fetch categories for filter sidebar
   const categories = await prisma.category.findMany({
@@ -116,20 +123,27 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <div className="mx-auto max-w-7xl">
         
         {/* Page Header */}
-        <div className="mb-8 border-b border-border/50 pb-6">
-          <h1 className="font-serif text-3xl font-bold text-foreground flex items-center gap-3">
-            <Search className="h-7 w-7 text-primary shrink-0" />
-            {q ? (
-              <span>
-                Hasil Pencarian: &ldquo;<span className="text-primary italic">{q}</span>&rdquo;
-              </span>
-            ) : (
-              <span>Pencarian Produk Kerajinan</span>
-            )}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Menampilkan {products.length} produk kerajinan tangan otentik dari pengrajin terverifikasi.
-          </p>
+        <div className="mb-10 relative overflow-hidden glass-card bg-background/60 p-8 sm:p-10 rounded-3xl border border-border/50 shadow-sm">
+          {/* Subtle decoration */}
+          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/10 rounded-full blur-[80px] -z-10 translate-x-1/4 -translate-y-1/4" />
+          
+          <div className="relative z-10">
+            <h1 className="font-serif text-3xl sm:text-4xl font-bold text-foreground flex items-center gap-4 mb-3 tracking-tight">
+              <div className="p-3 bg-primary/10 rounded-2xl text-primary shadow-inner">
+                <Search className="h-6 w-6 shrink-0" />
+              </div>
+              {q ? (
+                <span>
+                  {t.search.header_result} <span className="text-primary">&ldquo;{q}&rdquo;</span>
+                </span>
+              ) : (
+                <span>{t.search.header_default}</span>
+              )}
+            </h1>
+            <p className="mt-2 text-sm sm:text-base text-foreground/80 font-medium ml-16">
+              {t.search.showing_products_1}{products.length}{t.search.showing_products_2}
+            </p>
+          </div>
         </div>
 
         {/* Content Layout (Sidebar + Product Grid) */}
@@ -166,10 +180,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   <PackageX className="h-8 w-8" />
                 </div>
                 <h3 className="font-serif font-bold text-xl text-foreground mb-2">
-                  Tidak ada produk yang ditemukan
+                  {t.search.empty_title}
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
-                  Coba gunakan kata kunci lain, sesuaikan rentang harga, atau hapus filter kategori yang sedang aktif.
+                  {t.search.empty_desc}
                 </p>
               </div>
             )}

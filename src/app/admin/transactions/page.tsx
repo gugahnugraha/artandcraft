@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
-import { id } from "date-fns/locale";
+import { id as idLocale, enUS } from "date-fns/locale";
 import { CreditCard, Search, Filter } from "lucide-react";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { id as idDict } from "@/locales/id";
+import { en } from "@/locales/en";
 
 export const dynamic = "force-dynamic";
 
@@ -40,13 +43,18 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
     },
   });
 
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : idDict;
+
   const statusOptions = [
-    { label: "Semua Status", value: "ALL" },
-    { label: "Menunggu Pembayaran", value: "AWAITING_PAYMENT" },
-    { label: "Sukses Terbayar", value: "PAID" },
-    { label: "Sedang Diproses", value: "PROCESSING" },
-    { label: "Sudah Dikirim", value: "SHIPPED" },
-    { label: "Dibatalkan", value: "CANCELLED" },
+    { label: t.admin.all_status, value: "ALL" },
+    { label: t.seller_orders.status_awaiting, value: "AWAITING_PAYMENT" },
+    { label: t.seller_orders.status_paid, value: "PAID" },
+    { label: t.seller_orders.status_processing, value: "PROCESSING" },
+    { label: t.seller_orders.status_shipped, value: "SHIPPED" },
+    { label: t.seller_orders.status_completed, value: "DELIVERED" },
+    { label: t.order_status.CANCELLED, value: "CANCELLED" },
   ];
 
   return (
@@ -54,10 +62,10 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
       {/* Header */}
       <div>
         <h1 className="font-serif text-3xl font-bold text-foreground flex items-center gap-2">
-          <CreditCard className="h-8 w-8 text-primary" /> Riwayat Transaksi
+          <CreditCard className="h-8 w-8 text-primary" /> {t.admin.trx_history}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Pantau seluruh aktivitas keuangan dan status pesanan pembeli.
+          {t.admin.trx_history_desc}
         </p>
       </div>
 
@@ -74,7 +82,7 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
             type="text"
             name="q"
             defaultValue={q || ""}
-            placeholder="Cari ID, nama pembeli..."
+            placeholder={t.admin.search_placeholder}
             className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-4 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
           />
         </form>
@@ -98,7 +106,7 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
             type="submit"
             className="rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all"
           >
-            Filter
+            {t.admin.filter}
           </button>
         </form>
       </div>
@@ -108,17 +116,17 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
         <div className="overflow-x-auto">
           {orders.length === 0 ? (
             <div className="p-12 text-center text-muted-foreground text-sm">
-              Tidak ada riwayat transaksi yang cocok dengan pencarian Anda.
+              {t.admin.no_match}
             </div>
           ) : (
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="bg-muted/30 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  <th className="p-4">ID Order</th>
-                  <th className="p-4">Pembeli</th>
-                  <th className="p-4">Total</th>
-                  <th className="p-4">Status Pembayaran</th>
-                  <th className="p-4">Tanggal Transaksi</th>
+                  <th className="p-4">{t.admin.col_id}</th>
+                  <th className="p-4">{t.admin.col_buyer}</th>
+                  <th className="p-4">{t.admin.col_total}</th>
+                  <th className="p-4">{t.admin.col_payment_status}</th>
+                  <th className="p-4">{t.admin.col_trx_date}</th>
                 </tr>
               </thead>
               <tbody>
@@ -149,7 +157,7 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
                         </span>
                       </td>
                       <td className="p-4 text-xs text-muted-foreground">
-                        {format(new Date(order.createdAt), "d MMMM yyyy HH:mm", { locale: id })}
+                        {format(new Date(order.createdAt), "d MMMM yyyy HH:mm", { locale: lang === "en" ? enUS : idLocale })}
                       </td>
                     </tr>
                   );

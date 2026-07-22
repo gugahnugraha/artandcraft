@@ -9,12 +9,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginInput } from "@/features/auth/schemas";
 import { login } from "@/features/auth/actions/login";
 import { KeyRound, Mail, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // ─── Inner component that uses useSearchParams ────────────────────────────────
 // Must be wrapped in <Suspense> at page level for static prerender compatibility.
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -25,21 +27,21 @@ function LoginForm() {
     const errCode = searchParams.get("error");
 
     if (verified === "true") {
-      setSuccess("Email Anda berhasil diverifikasi! Silakan masuk ke akun Anda.");
+      setSuccess(t.auth_login.success_verified);
     }
 
     if (errCode) {
       if (errCode === "missing_token" || errCode === "invalid_token") {
-        setError("Token verifikasi tidak valid atau tidak ditemukan.");
+        setError(t.auth_login.err_invalid_token);
       } else if (errCode === "expired_token") {
-        setError("Link verifikasi telah kedaluwarsa. Silakan lakukan registrasi ulang.");
+        setError(t.auth_login.err_expired_token);
       } else if (errCode === "user_not_found") {
-        setError("Pengguna dengan email tersebut tidak ditemukan.");
+        setError(t.auth_login.err_user_not_found);
       } else {
-        setError("Gagal memverifikasi email Anda.");
+        setError(t.auth_login.err_verification_failed);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const {
     register: registerField,
@@ -71,7 +73,7 @@ function LoginForm() {
       }
     } catch (err: any) {
       if (err.message !== "NEXT_REDIRECT") {
-        setError("Terjadi kesalahan sistem saat mencoba masuk.");
+        setError(t.auth_login.err_system);
         setIsSubmitting(false);
       }
     }
@@ -84,10 +86,10 @@ function LoginForm() {
         {/* Header */}
         <div className="text-center">
           <h2 className="font-serif text-2xl font-bold tracking-tight text-foreground">
-            Selamat Datang <span className="text-primary font-bold">Kembali</span>
+            {t.auth_login.welcome} <span className="text-primary font-bold">{t.auth_login.back}</span>
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Masuk untuk mengakses keranjang dan dashboard Anda
+            {t.auth_login.subtitle}
           </p>
         </div>
 
@@ -114,7 +116,7 @@ function LoginForm() {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Alamat Email
+                {t.auth_login.email_label}
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -140,10 +142,10 @@ function LoginForm() {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Kata Sandi
+                  {t.auth_login.password_label}
                 </label>
                 <Link href="/forgot-password" className="text-[11px] text-primary hover:underline font-semibold">
-                  Lupa sandi?
+                  {t.auth_login.forgot_password}
                 </Link>
               </div>
               <div className="relative">
@@ -177,10 +179,10 @@ function LoginForm() {
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Sedang Masuk...</span>
+                <span>{t.auth_login.signing_in}</span>
               </>
             ) : (
-              <span>Masuk</span>
+              <span>{t.auth_login.sign_in}</span>
             )}
           </button>
         </form>
@@ -191,7 +193,7 @@ function LoginForm() {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-[10px] uppercase">
-            <span className="bg-card px-2 text-muted-foreground font-semibold">Atau Lanjutkan Dengan</span>
+            <span className="bg-card px-2 text-muted-foreground font-semibold">{t.auth_login.or_continue_with}</span>
           </div>
         </div>
 
@@ -209,14 +211,14 @@ function LoginForm() {
               <path d="M12,6c1.66,0,3.14,0.67,4.24,1.76l2.06-2.06C16.59,2.97,14.42,2,12,2C7.03,2,3,6.03,3,11h3.62C7.12,9.05,9.31,7.8,12,7.8c0.04,0,12,6,12,6z" fill="#4285F4" />
             </g>
           </svg>
-          <span>Masuk dengan Google</span>
+          <span>{t.auth_login.sign_in_google}</span>
         </button>
 
         {/* Footer Link */}
         <p className="text-center text-xs text-muted-foreground mt-4">
-          Belum memiliki akun?{" "}
+          {t.auth_login.no_account}
           <Link href="/register" className="text-primary hover:underline font-semibold">
-            Daftar Sekarang
+            {t.auth_login.register_now}
           </Link>
         </p>
 

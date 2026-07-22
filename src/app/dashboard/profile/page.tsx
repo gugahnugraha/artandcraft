@@ -3,10 +3,18 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import ProfileForm from "./ProfileForm";
+import { cookies } from "next/headers";
+import { id } from "@/locales/id";
+import { en } from "@/locales/en";
 
-export const metadata: Metadata = {
-  title: "Profil & Keamanan | ArtAndCraft.id",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : id;
+  return {
+    title: t.profile.title,
+  };
+}
 
 export const dynamic = "force-dynamic";
 

@@ -86,10 +86,10 @@ export default function CheckoutPage() {
       } else {
         setCouponDiscount(0);
         setAppliedCoupon(null);
-        setCouponMsg({ text: data.error || "Kupon tidak valid.", type: "error" });
+        setCouponMsg({ text: data.error || t.checkout.err_invalid_coupon, type: "error" });
       }
     } catch {
-      setCouponMsg({ text: "Gagal menghubungi server.", type: "error" });
+      setCouponMsg({ text: t.checkout.err_server, type: "error" });
     } finally {
       setIsValidatingCoupon(false);
     }
@@ -160,7 +160,7 @@ export default function CheckoutPage() {
     if (selectedAddressId !== "new") {
       const selected = addresses.find(a => a.id === selectedAddressId);
       if (!selected) {
-        setErrorMessage("Alamat yang dipilih tidak valid.");
+        setErrorMessage(t.checkout.err_invalid_address);
         setIsProcessing(false);
         return;
       }
@@ -225,11 +225,11 @@ export default function CheckoutPage() {
               clearCart();
             },
             onError: function (result: any) {
-              setErrorMessage("Pembayaran gagal. Silakan coba lagi.");
+              setErrorMessage(t.checkout.err_payment);
               setIsProcessing(false);
             },
             onClose: function () {
-              setErrorMessage("Anda menutup popup pembayaran sebelum menyelesaikannya.");
+              setErrorMessage(t.checkout.err_payment_closed);
               setIsProcessing(false);
             }
           });
@@ -243,12 +243,12 @@ export default function CheckoutPage() {
         if (res.status === 401) {
           router.push("/login?callbackUrl=/checkout");
         } else {
-          setErrorMessage(data.error || "Gagal membuat pesanan.");
+          setErrorMessage(data.error || t.checkout.err_order);
           setIsProcessing(false);
         }
       }
     } catch (err) {
-      setErrorMessage("Terjadi kesalahan jaringan.");
+      setErrorMessage(t.checkout.err_network);
       setIsProcessing(false);
     }
   };
@@ -269,7 +269,7 @@ export default function CheckoutPage() {
           href="/" 
           className="rounded-full bg-primary px-8 py-3.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-md"
         >
-          Kembali ke Beranda
+          {t.checkout.back_home}
         </Link>
       </div>
     );
@@ -425,14 +425,14 @@ export default function CheckoutPage() {
                 <label className="flex items-center gap-3 p-4 rounded-xl border border-primary bg-primary/5 cursor-pointer">
                   <input type="radio" name="payment" value="Virtual Account" defaultChecked className="text-primary focus:ring-primary h-4 w-4" />
                   <div>
-                    <p className="font-bold text-sm text-foreground">Transfer Bank Virtual Account</p>
+                    <p className="font-bold text-sm text-foreground">{t.checkout.virtual_account}</p>
                     <p className="text-xs text-muted-foreground">BCA, Mandiri, BNI, BRI</p>
                   </div>
                 </label>
                 <label className="flex items-center gap-3 p-4 rounded-xl border border-border hover:bg-muted/50 cursor-pointer transition-colors">
                   <input type="radio" name="payment" value="E-Wallet" className="text-primary focus:ring-primary h-4 w-4" />
                   <div>
-                    <p className="font-bold text-sm text-foreground">E-Wallet (QRIS)</p>
+                    <p className="font-bold text-sm text-foreground">{t.checkout.ewallet}</p>
                     <p className="text-xs text-muted-foreground">GoPay, OVO, Dana, ShopeePay</p>
                   </div>
                 </label>
@@ -467,14 +467,14 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-2 text-sm text-green-700">
                       <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
                       <span className="font-mono font-bold">{appliedCoupon}</span>
-                      <span className="text-xs">diterapkan</span>
+                      <span className="text-xs">{t.checkout.applied}</span>
                     </div>
                     <button
                       type="button"
                       onClick={removeCoupon}
                       className="text-xs text-green-600 hover:text-green-800 font-semibold underline"
                     >
-                      Hapus
+                      {t.checkout.remove}
                     </button>
                   </div>
                 ) : (
@@ -484,7 +484,7 @@ export default function CheckoutPage() {
                         type="text"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                        placeholder="Kode kupon..."
+                        placeholder={t.checkout.coupon_placeholder}
                         className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono tracking-wider text-foreground uppercase focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                       <button
@@ -494,7 +494,7 @@ export default function CheckoutPage() {
                         className="shrink-0 flex items-center gap-1.5 rounded-lg bg-primary/10 text-primary px-4 py-2 text-sm font-bold hover:bg-primary/20 transition-colors disabled:opacity-50"
                       >
                         {isValidatingCoupon ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Tag className="h-3.5 w-3.5" />}
-                        Pakai
+                        {t.checkout.apply}
                       </button>
                     </div>
                     {couponMsg && (
@@ -519,7 +519,7 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-green-600">
                     <span className="flex items-center gap-1.5">
                       <Tag className="h-3.5 w-3.5" />
-                      Kupon ({appliedCoupon})
+                      {t.checkout.coupon_label} ({appliedCoupon})
                     </span>
                     <span>- Rp {couponDiscount.toLocaleString("id-ID")}</span>
                   </div>
@@ -544,7 +544,7 @@ export default function CheckoutPage() {
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-4 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-md disabled:opacity-50"
               >
                 {isProcessing ? (
-                  <><Loader2 className="h-5 w-5 animate-spin" /> Memproses...</>
+                  <><Loader2 className="h-5 w-5 animate-spin" /> {t.checkout.processing}</>
                 ) : (
                   <><ShieldCheck className="h-5 w-5" /> {t.checkout.pay_now}</>
                 )}
@@ -552,7 +552,7 @@ export default function CheckoutPage() {
               
               <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
                 <ShieldCheck className="h-4 w-4 text-green-500" />
-                <span>Transaksi dijamin aman & terenkripsi</span>
+                <span>{t.checkout.secure}</span>
               </div>
             </div>
           </div>

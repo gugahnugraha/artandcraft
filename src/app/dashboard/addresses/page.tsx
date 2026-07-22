@@ -3,10 +3,18 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import AddressManager from "./AddressManager";
+import { cookies } from "next/headers";
+import { id } from "@/locales/id";
+import { en } from "@/locales/en";
 
-export const metadata: Metadata = {
-  title: "Alamat Tersimpan | ArtAndCraft.id",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : id;
+  return {
+    title: t.addresses.title,
+  };
+}
 
 export const dynamic = "force-dynamic";
 

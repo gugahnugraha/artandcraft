@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Star, Heart } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProductCardProps {
   id?: string;
@@ -20,6 +21,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard(props: ProductCardProps) {
+  const { t } = useLanguage();
   const p = props.product || props;
   const title = p.title || "Produk Kerajinan";
   const slug = p.slug || "";
@@ -36,25 +38,32 @@ export default function ProductCard(props: ProductCardProps) {
   const finalPrice = hasDiscount ? price * (1 - discount / 100) : price;
 
   return (
-    <Link href={`/produk/${slug}`} className="group flex flex-col block relative w-full">
+    <Link href={`/produk/${slug}`} className="group flex flex-col block relative w-full hover-lift p-2 -m-2 rounded-2xl transition-all">
       
       {/* Image container */}
-      <div className="relative w-full aspect-[4/3] sm:aspect-square bg-muted/30 rounded-xl overflow-hidden mb-2 transition-all">
+      <div className="relative w-full aspect-[4/3] sm:aspect-square bg-muted/30 rounded-xl overflow-hidden mb-3 transition-all group-hover:shadow-md">
         {photos && photos.length > 0 ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photos[0]}
             alt={title}
-            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 ease-out"
+            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700 ease-out"
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center select-none bg-muted/40">
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center select-none bg-muted/40 group-hover:scale-105 transition-transform duration-500">
             <span className="font-serif text-3xl font-light text-muted-foreground/30">
               {categoryName ? categoryName.charAt(0) : (title?.charAt(0) || "A")}
             </span>
           </div>
         )}
+
+        {/* Quick View Overlay */}
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10 backdrop-blur-[2px]">
+          <span className="px-4 py-2 bg-white/90 backdrop-blur-sm text-foreground text-xs font-bold rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-lg border border-white/40">
+            {t.product.quick_view}
+          </span>
+        </div>
 
         {/* Wishlist Button (Always visible on hover, or always visible) */}
         <button
@@ -63,7 +72,7 @@ export default function ProductCard(props: ProductCardProps) {
             e.stopPropagation();
             setIsWishlisted(!isWishlisted);
           }}
-          className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shadow-sm hover:scale-105 active:scale-95 z-10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+          className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shadow-sm hover:scale-110 active:scale-95 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
           aria-label="Add to Wishlist"
         >
           <Heart
@@ -97,14 +106,14 @@ export default function ProductCard(props: ProductCardProps) {
         <div className="mt-1 flex items-center gap-2">
           {hasDiscount ? (
             <>
-              <span className="font-bold text-foreground text-sm">
+              <span className="font-bold text-primary text-sm">
                 Rp {finalPrice.toLocaleString("id-ID")}
               </span>
               <span className="text-xs text-muted-foreground line-through decoration-muted-foreground/50">
                 Rp {price.toLocaleString("id-ID")}
               </span>
-              <span className="text-[10px] font-semibold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-sm">
-                {discount}% OFF
+              <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+                -{discount}%
               </span>
             </>
           ) : (

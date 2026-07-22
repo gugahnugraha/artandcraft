@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProductGalleryProps {
   photos: string[];
@@ -11,6 +12,7 @@ interface ProductGalleryProps {
 export default function ProductGallery({ photos, title }: ProductGalleryProps) {
   const hasPhotos = photos && photos.length > 0;
   const [activeIndex, setActiveIndex] = useState(0);
+  const { t } = useLanguage();
 
   const prev = () => setActiveIndex((i) => (i > 0 ? i - 1 : photos.length - 1));
   const next = () => setActiveIndex((i) => (i < photos.length - 1 ? i + 1 : 0));
@@ -22,7 +24,7 @@ export default function ProductGallery({ photos, title }: ProductGalleryProps) {
           <span className="text-6xl font-serif text-foreground/10 block mb-3">
             {title.split(" ").slice(-1)[0]}
           </span>
-          <p className="text-xs text-muted-foreground">Foto belum tersedia</p>
+          <p className="text-xs text-muted-foreground">{t.product.no_photo}</p>
         </div>
       </div>
     );

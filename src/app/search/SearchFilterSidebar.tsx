@@ -77,7 +77,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
           className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
         >
           <Filter className="h-4 w-4 text-primary" />
-          Filter
+          {t.search.mobile_filter_btn}
         </button>
 
         {/* Sort Select on Mobile */}
@@ -94,19 +94,21 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
 
       {/* Filter Content Container */}
       <div
-        className={`space-y-6 ${
+        className={`space-y-6 lg:p-6 lg:glass-card lg:bg-background/80 lg:rounded-[2rem] lg:border lg:border-border/50 lg:shadow-sm ${
           mobileFilterOpen ? "block" : "hidden lg:block"
         }`}
       >
-        <div className="flex items-center justify-between pb-4 border-b border-border">
-          <h3 className="font-serif font-bold text-lg text-foreground flex items-center gap-2">
-            <Filter className="h-4 w-4 text-primary" />
+        <div className="flex items-center justify-between pb-4 border-b border-border/50">
+          <h3 className="font-serif font-bold text-lg text-foreground flex items-center gap-2.5">
+            <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+              <Filter className="h-4 w-4" />
+            </div>
             {t.search.title}
           </h3>
           {(currentCategory || currentMinPrice || currentMaxPrice || currentQuery || currentSort !== "newest") && (
             <button
               onClick={handleReset}
-              className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
+              className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1.5 transition-colors font-medium bg-secondary/50 px-2.5 py-1 rounded-full hover:bg-destructive/10"
             >
               <RotateCcw className="h-3 w-3" />
               {t.search.reset_filter}
@@ -131,16 +133,16 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
         </div>
 
         {/* Category Filter */}
-        <div className="space-y-3">
-          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        <div className="space-y-4">
+          <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             {t.search.filter_category}
           </label>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <button
               onClick={() => applyFilter({ category: null })}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-left transition-colors ${
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm text-left transition-all ${
                 !currentCategory
-                  ? "bg-primary/10 text-primary font-bold"
+                  ? "bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20 hover-lift"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
               }`}
             >
@@ -151,12 +153,12 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
             {categories.map((cat) => {
               const isSelected = currentCategory === cat.slug;
               return (
-                <div key={cat.id} className="space-y-1">
+                <div key={cat.id} className="space-y-1.5">
                   <button
                     onClick={() => applyFilter({ category: isSelected ? null : cat.slug, subcategory: null })}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-left transition-colors ${
+                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm text-left transition-all ${
                       isSelected
-                        ? "bg-primary/10 text-primary font-bold"
+                        ? "bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20 hover-lift"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
                     }`}
                   >
@@ -166,16 +168,16 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
 
                   {/* Subcategories Accordion */}
                   {isSelected && cat.subcategories && cat.subcategories.length > 0 && (
-                    <div className="pl-3 space-y-1 border-l-2 border-primary/30 ml-3 my-1">
+                    <div className="pl-4 space-y-1 border-l-2 border-primary/20 ml-4 my-2">
                       {cat.subcategories.map((sub) => {
                         const isSubSelected = currentSubcategory === sub.slug;
                         return (
                           <button
                             key={sub.id}
                             onClick={() => applyFilter({ subcategory: isSubSelected ? null : sub.slug })}
-                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-left transition-colors ${
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs text-left transition-colors ${
                               isSubSelected
-                                ? "bg-primary text-primary-foreground font-bold"
+                                ? "bg-primary/10 text-primary font-bold"
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
                             }`}
                           >
@@ -218,7 +220,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
               type="submit"
               className="w-full rounded-lg bg-primary/10 py-2 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all"
             >
-              Apply Filter
+              {t.search.apply_filter}
             </button>
           </form>
         </div>

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Mail, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ForgotPasswordPage() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -16,7 +18,7 @@ export default function ForgotPasswordPage() {
     setSuccess(null);
 
     if (!email) {
-      setError("Masukkan email Anda");
+      setError(t.auth_forgot.err_empty_email);
       return;
     }
 
@@ -33,10 +35,10 @@ export default function ForgotPasswordPage() {
       if (res.ok) {
         setSuccess(data.message);
       } else {
-        setError(data.message || "Gagal mengirim permintaan reset password.");
+        setError(data.message || t.auth_forgot.err_failed);
       }
     } catch (err) {
-      setError("Terjadi kesalahan sistem.");
+      setError(t.auth_forgot.err_system);
     } finally {
       setIsSubmitting(false);
     }
@@ -49,10 +51,10 @@ export default function ForgotPasswordPage() {
         {/* Header */}
         <div className="text-center">
           <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground">
-            Lupa <span className="text-primary italic">Kata Sandi</span>
+            {t.auth_forgot.forgot}<span className="text-primary italic">{t.auth_forgot.password}</span>
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Masukkan email terdaftar Anda untuk menerima link reset kata sandi
+            {t.auth_forgot.subtitle}
           </p>
         </div>
 
@@ -76,7 +78,7 @@ export default function ForgotPasswordPage() {
           <form className="mt-8 space-y-6" onSubmit={onSubmit}>
             <div>
               <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                Alamat Email
+                {t.auth_forgot.email_label}
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -101,10 +103,10 @@ export default function ForgotPasswordPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Mengirim Link...</span>
+                  <span>{t.auth_forgot.sending_link}</span>
                 </>
               ) : (
-                <span>Kirim Link Reset</span>
+                <span>{t.auth_forgot.send_link}</span>
               )}
             </button>
           </form>
@@ -112,9 +114,9 @@ export default function ForgotPasswordPage() {
 
         {/* Footer Link */}
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Kembali ke{" "}
+          {t.auth_forgot.back_to}
           <Link href="/login" className="text-primary hover:underline font-semibold">
-            Halaman Masuk
+            {t.auth_forgot.login_page}
           </Link>
         </p>
 

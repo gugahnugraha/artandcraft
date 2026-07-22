@@ -4,7 +4,8 @@ import { useState, useEffect, useTransition } from "react";
 import { Star, MessageCircle, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
-import { id } from "date-fns/locale";
+import { id as idLocale, enUS } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Review {
   id: string;
@@ -23,6 +24,7 @@ interface ProductReviewsProps {
 
 export default function ProductReviews({ productId }: ProductReviewsProps) {
   const { data: session } = useSession();
+  const { t, language } = useLanguage();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [averageRating, setAverageRating] = useState<string>("0");
   const [totalReviews, setTotalReviews] = useState<number>(0);
@@ -57,7 +59,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!session) {
-      setFormMsg({ type: "error", text: "Silakan login untuk memberikan ulasan." });
+      setFormMsg({ type: "error", text: t.product.login_to_review });
       return;
     }
 
@@ -70,17 +72,17 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       });
       const data = await res.json();
       if (res.ok) {
-        setFormMsg({ type: "success", text: "Ulasan berhasil dikirim!" });
+        setFormMsg({ type: "success", text: t.product.review_success });
         setComment("");
         setRating(5);
         fetchReviews(); // refresh reviews
       } else {
-        setFormMsg({ type: "error", text: data.message || "Gagal mengirim ulasan." });
+        setFormMsg({ type: "error", text: data.message || t.product.review_failed });
       }
     });
   };
 
-  if (isLoading) return <div className="py-8 text-center text-muted-foreground animate-pulse">Memuat ulasan...</div>;
+  if (isLoading) return <div className="py-8 text-center text-muted-foreground animate-pulse">{t.product.loading_reviews}</div>;
 
   return (
     <div className="space-y-12">
@@ -93,7 +95,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               <Star key={star} className={`h-5 w-5 ${star <= Math.round(Number(averageRating)) ? "fill-current text-yellow-400" : "text-border"}`} />
             ))}
           </div>
-          <p className="text-sm text-muted-foreground mt-2">{totalReviews} ulasan</p>
+          <p className="text-sm text-muted-foreground mt-2">{totalReviews} {t.product.review_count}</p>
         </div>
       </div>
 
@@ -101,11 +103,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       {session && (
         <form onSubmit={handleSubmit} className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-4">
           <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-primary" /> Tulis Ulasan
+            <MessageCircle className="h-5 w-5 text-primary" /> {t.product.write_review}
           </h3>
           
           <div>
-            <label className="block text-sm font-semibold text-muted-foreground mb-2">Rating</label>
+            <label className="block text-sm font-semibold text-muted-foreground mb-2">{t.product.rating_label}</label>
             <div className="flex items-center gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -121,13 +123,13 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-muted-foreground mb-2">Komentar (Opsional)</label>
+            <label className="block text-sm font-semibold text-muted-foreground mb-2">{t.product.comment_label}</label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={4}
               className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-              placeholder="Bagikan pengalaman Anda menggunakan produk ini..."
+              placeholder={t.product.comment_placeholder}
             />
           </div>
 
@@ -142,7 +144,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
             disabled={isPending}
             className="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {isPending ? "Mengirim..." : "Kirim Ulasan"}
+            {isPending ? t.product.submitting : t.product.submit_review}
           </button>
         </form>
       )}
@@ -151,7 +153,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       <div className="space-y-6">
         {reviews.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground bg-muted/30 rounded-2xl border border-dashed border-border">
-            Belum ada ulasan untuk produk ini.
+            {t.product.no_reviews}
           </div>
         ) : (
           reviews.map((review) => (
@@ -160,16 +162,16 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border border-border">
                   {review.user.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={review.user.image} alt={review.user.name || "User"} className="h-full w-full object-cover" />
+                    <img src={review.user.image} alt={review.user.name || t.product.default_user} className="h-full w-full object-cover" />
                   ) : (
                     <User className="h-5 w-5 text-primary" />
                   )}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="font-bold text-sm text-foreground">{review.user.name || "Pengguna"}</p>
+                    <p className="font-bold text-sm text-foreground">{review.user.name || t.product.default_user}</p>
                     <span className="text-xs text-muted-foreground">
-                      {format(new Date(review.createdAt), "d MMMM yyyy", { locale: id })}
+                      {format(new Date(review.createdAt), "d MMMM yyyy", { locale: language === "en" ? enUS : idLocale })}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 mb-3 text-yellow-400">

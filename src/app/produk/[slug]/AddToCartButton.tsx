@@ -4,6 +4,7 @@ import { useCart } from "@/store/cart";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ShoppingBag, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AddToCartButtonProps {
   product: {
@@ -23,6 +24,7 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
   const { addItem } = useCart();
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
+  const { t } = useLanguage();
 
   const price = Number(product.price);
   const discount = Number(product.discount);
@@ -59,14 +61,14 @@ export default function AddToCartButton({ product }: AddToCartButtonProps) {
         className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/95 transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isAdding ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingBag className="h-4 w-4" />}
-        {product.stock <= 0 ? "Stok Habis" : "Tambah ke Keranjang"}
+        {product.stock <= 0 ? t.product.out_of_stock : t.product.add_to_cart}
       </button>
       <button
         onClick={handleBuyNow}
         disabled={product.stock <= 0}
         className="rounded-xl border border-border bg-card px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        Beli Sekarang
+        {t.product.buy_now}
       </button>
     </div>
   );

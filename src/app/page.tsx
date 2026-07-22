@@ -1,35 +1,41 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import HomeClient from "@/components/home/HomeClient";
+import { cookies } from "next/headers";
+import { id } from "@/locales/id";
+import { en } from "@/locales/en";
 
 const BASE_URL = process.env.NEXTAUTH_URL || "https://artandcraft.id";
 
-export const metadata: Metadata = {
-  title: "ArtAndCraft.id — Marketplace Kerajinan Tangan & Produk Seni Indonesia",
-  description:
-    "Temukan kerajinan tangan otentik, batik, kayu, keramik, perhiasan, dan karya pengrajin UMKM lokal terbaik Indonesia. Belanja langsung dari pengrajinnya di ArtAndCraft.id.",
-  keywords: [
-    "kerajinan tangan", "marketplace UMKM", "batik", "wayang", "gerabah",
-    "perhiasan handmade", "kayu jati", "macrame", "resin art", "souvenir pernikahan",
-  ],
-  metadataBase: new URL(BASE_URL),
-  openGraph: {
-    type: "website",
-    url: BASE_URL,
-    title: "ArtAndCraft.id — Marketplace Kerajinan Tangan Indonesia",
-    description:
-      "Temukan kerajinan tangan otentik dan produk seni dari pengrajin UMKM lokal terbaik Indonesia.",
-    siteName: "ArtAndCraft.id",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "ArtAndCraft.id — Marketplace Kerajinan Tangan Indonesia",
-    description:
-      "Belanja produk seni dan kerajinan tangan UMKM lokal pilihan dari seluruh Indonesia.",
-  },
-  alternates: { canonical: BASE_URL },
-  robots: { index: true, follow: true },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : id;
+
+  return {
+    title: t.metadata.title,
+    description: t.metadata.description,
+    keywords: [
+      "kerajinan tangan", "marketplace UMKM", "batik", "wayang", "gerabah",
+      "perhiasan handmade", "kayu jati", "macrame", "resin art", "souvenir pernikahan",
+    ],
+    metadataBase: new URL(BASE_URL),
+    openGraph: {
+      type: "website",
+      url: BASE_URL,
+      title: t.metadata.og_title,
+      description: t.metadata.og_desc,
+      siteName: "ArtAndCraft.id",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t.metadata.tw_title,
+      description: t.metadata.tw_desc,
+    },
+    alternates: { canonical: BASE_URL },
+    robots: { index: true, follow: true },
+  };
+}
 
 // ─── Categories ──────────────────────────────────────────────────────────────
 const categories = [
@@ -70,7 +76,7 @@ export default async function Home() {
   try {
     // Fetch categories from DB
     const dbCategories = await prisma.category.findMany({
-      select: { name: true, slug: true },
+      select: { name: true, slug: true, image: true },
     });
     if (dbCategories.length > 0) {
       categoriesList = dbCategories;

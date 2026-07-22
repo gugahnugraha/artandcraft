@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, Plus, Trash2, CheckCircle2, Edit2, X, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Address {
   id: string;
@@ -39,6 +40,7 @@ const PROVINCES = [
 function AddressCard({ address, onDelete, onSetDefault }: AddressCardProps) {
   const [deleting, startDelete] = useTransition();
   const [setting, startSet] = useTransition();
+  const { t } = useLanguage();
 
   return (
     <div className={`bg-card rounded-2xl border shadow-sm p-5 relative transition-all ${
@@ -46,7 +48,7 @@ function AddressCard({ address, onDelete, onSetDefault }: AddressCardProps) {
     }`}>
       {address.isDefault && (
         <span className="absolute top-4 right-4 inline-flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-          <CheckCircle2 className="h-3 w-3" /> Utama
+          <CheckCircle2 className="h-3 w-3" /> {t.addresses.main}
         </span>
       )}
 
@@ -78,7 +80,7 @@ function AddressCard({ address, onDelete, onSetDefault }: AddressCardProps) {
             className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors"
           >
             {setting ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
-            Jadikan Utama
+            {t.addresses.set_main}
           </button>
         )}
         <button
@@ -87,7 +89,7 @@ function AddressCard({ address, onDelete, onSetDefault }: AddressCardProps) {
           className="flex items-center gap-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors ml-auto"
         >
           {deleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-          Hapus
+          {t.addresses.delete}
         </button>
       </div>
     </div>
@@ -100,13 +102,14 @@ interface AddressManagerProps {
 
 export default function AddressManager({ initialAddresses }: AddressManagerProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
   const [showForm, setShowForm] = useState(false);
   const [saving, startSave] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
-    label: "Rumah",
+    label: t.addresses.label_home,
     fullName: "",
     phoneNumber: "",
     street: "",
@@ -146,10 +149,10 @@ export default function AddressManager({ initialAddresses }: AddressManagerProps
       if (res.ok) {
         setAddresses((prev) => [...prev, data.address]);
         setShowForm(false);
-        setForm({ label: "Rumah", fullName: "", phoneNumber: "", street: "", city: "", province: "", postalCode: "" });
+        setForm({ label: t.addresses.label_home, fullName: "", phoneNumber: "", street: "", city: "", province: "", postalCode: "" });
         router.refresh();
       } else {
-        setError(data.message || "Gagal menyimpan alamat.");
+        setError(data.message || t.addresses.err_save);
       }
     });
   };
@@ -158,9 +161,9 @@ export default function AddressManager({ initialAddresses }: AddressManagerProps
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-foreground">Alamat Tersimpan</h1>
+          <h1 className="font-serif text-2xl font-bold text-foreground">{t.addresses.heading}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {addresses.length} alamat tersimpan
+            {addresses.length} {t.addresses.saved_count}
           </p>
         </div>
         <button
@@ -168,7 +171,7 @@ export default function AddressManager({ initialAddresses }: AddressManagerProps
           className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {showForm ? "Batal" : "Tambah Alamat"}
+          {showForm ? t.addresses.cancel : t.addresses.add_btn}
         </button>
       </div>
 
@@ -176,11 +179,11 @@ export default function AddressManager({ initialAddresses }: AddressManagerProps
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-card rounded-2xl border border-primary/30 shadow-md p-6 space-y-4">
           <h2 className="font-bold text-foreground flex items-center gap-2">
-            <Plus className="h-4 w-4 text-primary" /> Tambah Alamat Baru
+            <Plus className="h-4 w-4 text-primary" /> {t.addresses.add_new}
           </h2>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {["Rumah", "Kantor", "Kos", "Lainnya"].map((lbl) => (
+            {[t.addresses.label_home, t.addresses.label_office, t.addresses.label_boarding, t.addresses.label_other].map((lbl) => (
               <button
                 key={lbl}
                 type="button"
@@ -198,17 +201,17 @@ export default function AddressManager({ initialAddresses }: AddressManagerProps
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Nama Penerima</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.addresses.receiver_name}</label>
               <input
                 required
                 value={form.fullName}
                 onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))}
                 className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-                placeholder="Nama lengkap penerima"
+                placeholder={t.addresses.receiver_placeholder}
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">No. Telepon</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.addresses.phone}</label>
               <input
                 required
                 value={form.phoneNumber}
@@ -220,20 +223,20 @@ export default function AddressManager({ initialAddresses }: AddressManagerProps
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alamat Lengkap (Jalan, RT/RW, Kelurahan)</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.addresses.street}</label>
             <textarea
               required
               rows={2}
               value={form.street}
               onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))}
               className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition resize-none"
-              placeholder="Jl. Merdeka No. 1, RT 01/RW 02, Kel. Sukamaju"
+              placeholder={t.addresses.street_placeholder}
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kota / Kabupaten</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.addresses.city}</label>
               <input
                 required
                 value={form.city}
@@ -243,21 +246,21 @@ export default function AddressManager({ initialAddresses }: AddressManagerProps
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Provinsi</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.addresses.province}</label>
               <select
                 required
                 value={form.province}
                 onChange={(e) => setForm((p) => ({ ...p, province: e.target.value }))}
                 className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
               >
-                <option value="">Pilih Provinsi</option>
+                <option value="">{t.addresses.select_province}</option>
                 {PROVINCES.map((p) => (
                   <option key={p} value={p}>{p}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kode Pos</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.addresses.postal_code}</label>
               <input
                 required
                 value={form.postalCode}
@@ -280,14 +283,14 @@ export default function AddressManager({ initialAddresses }: AddressManagerProps
               className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-              Simpan Alamat
+              {t.addresses.save}
             </button>
             <button
               type="button"
               onClick={() => setShowForm(false)}
               className="rounded-xl border border-border px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
             >
-              Batal
+              {t.addresses.cancel}
             </button>
           </div>
         </form>
@@ -297,13 +300,13 @@ export default function AddressManager({ initialAddresses }: AddressManagerProps
       {addresses.length === 0 && !showForm ? (
         <div className="bg-card rounded-2xl border border-border shadow-sm py-16 flex flex-col items-center text-center px-4">
           <MapPin className="h-14 w-14 text-muted-foreground/20 mb-4" />
-          <p className="font-semibold text-foreground mb-1">Belum ada alamat tersimpan</p>
-          <p className="text-sm text-muted-foreground mb-4">Tambahkan alamat pengiriman untuk mempercepat proses checkout.</p>
+          <p className="font-semibold text-foreground mb-1">{t.addresses.empty_title}</p>
+          <p className="text-sm text-muted-foreground mb-4">{t.addresses.empty_desc}</p>
           <button
             onClick={() => setShowForm(true)}
             className="rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Tambah Alamat Pertama
+            {t.addresses.add_first}
           </button>
         </div>
       ) : (

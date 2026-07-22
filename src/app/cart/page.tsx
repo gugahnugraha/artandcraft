@@ -5,10 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCart();
   const [isMounted, setIsMounted] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     setIsMounted(true);
@@ -19,18 +21,18 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-background py-12">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <h1 className="font-serif text-3xl font-bold text-foreground mb-8">Keranjang Belanja</h1>
+        <h1 className="font-serif text-3xl font-bold text-foreground mb-8">{t.cart.title}</h1>
 
         {items.length === 0 ? (
           <div className="text-center py-20 bg-card rounded-2xl border border-border">
             <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-bold text-foreground mb-2">Keranjang Anda kosong</h2>
-            <p className="text-muted-foreground mb-6">Yuk, temukan karya pengrajin lokal yang menarik!</p>
+            <h2 className="text-xl font-bold text-foreground mb-2">{t.cart.empty_title}</h2>
+            <p className="text-muted-foreground mb-6">{t.cart.empty_desc}</p>
             <Link 
               href="/search" 
               className="inline-flex rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              Mulai Belanja
+              {t.cart.start_shopping}
             </Link>
           </div>
         ) : (
@@ -40,12 +42,12 @@ export default function CartPage() {
             <div className="lg:col-span-2 space-y-4">
               <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
                 <div className="flex justify-between items-center mb-4 border-b border-border/50 pb-4">
-                  <h2 className="font-semibold text-lg text-foreground">Item Pesanan ({items.length})</h2>
+                  <h2 className="font-semibold text-lg text-foreground">{t.cart.items_count} ({items.length})</h2>
                   <button 
                     onClick={clearCart}
                     className="text-sm font-semibold text-destructive hover:underline"
                   >
-                    Kosongkan
+                    {t.cart.clear}
                   </button>
                 </div>
                 
@@ -65,7 +67,7 @@ export default function CartPage() {
                       <div className="flex-1 flex flex-col justify-between">
                         <div>
                           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                            Dari: <span className="font-semibold text-primary">{item.sellerName}</span>
+                            {t.cart.from}: <span className="font-semibold text-primary">{item.sellerName}</span>
                           </p>
                           <Link href={`/produk/${item.id}`} className="font-bold text-foreground hover:text-primary transition-colors line-clamp-2">
                             {item.title}
@@ -98,7 +100,7 @@ export default function CartPage() {
                           <button 
                             onClick={() => removeItem(item.id)}
                             className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
-                            title="Hapus item"
+                            title={t.cart.remove_item}
                           >
                             <Trash2 className="h-5 w-5" />
                           </button>
@@ -113,21 +115,21 @@ export default function CartPage() {
             {/* Order Summary */}
             <div className="lg:col-span-1">
               <div className="bg-card rounded-2xl border border-border p-6 shadow-sm sticky top-24">
-                <h2 className="font-semibold text-lg text-foreground mb-4">Ringkasan Belanja</h2>
+                <h2 className="font-semibold text-lg text-foreground mb-4">{t.cart.summary}</h2>
                 
                 <div className="space-y-3 text-sm border-b border-border/50 pb-4 mb-4">
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Total Harga ({items.reduce((a, b) => a + b.quantity, 0)} barang)</span>
+                    <span>{t.cart.total_price} ({items.reduce((a, b) => a + b.quantity, 0)} {t.cart.items})</span>
                     <span>Rp {getTotalPrice().toLocaleString("id-ID")}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Ongkos Kirim</span>
-                    <span>Dihitung saat checkout</span>
+                    <span>{t.cart.shipping}</span>
+                    <span>{t.cart.calculated_at_checkout}</span>
                   </div>
                 </div>
                 
                 <div className="flex justify-between items-center font-bold text-lg mb-6">
-                  <span>Total Belanja</span>
+                  <span>{t.cart.total}</span>
                   <span className="text-primary">Rp {getTotalPrice().toLocaleString("id-ID")}</span>
                 </div>
                 
@@ -135,11 +137,11 @@ export default function CartPage() {
                   href="/checkout"
                   className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-md"
                 >
-                  Lanjut ke Pembayaran <ArrowRight className="h-4 w-4" />
+                  {t.cart.checkout} <ArrowRight className="h-4 w-4" />
                 </Link>
                 
                 <p className="text-xs text-muted-foreground text-center mt-4">
-                  Dengan melanjutkan, Anda menyetujui Syarat & Ketentuan kami.
+                  {t.cart.terms}
                 </p>
               </div>
             </div>

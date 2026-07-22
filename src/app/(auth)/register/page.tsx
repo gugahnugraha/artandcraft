@@ -9,9 +9,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, RegisterInput } from "@/features/auth/schemas";
 import { register as registerAction } from "@/features/auth/actions/register";
 import { User, Mail, KeyRound, Loader2, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,7 +46,7 @@ export default function RegisterPage() {
       }
     } catch (err: any) {
       if (err.message !== "NEXT_REDIRECT") {
-        setError("Terjadi kesalahan sistem saat mencoba mendaftar.");
+        setError(t.auth_register.err_system);
         setIsSubmitting(false);
       }
     }
@@ -57,10 +59,10 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="text-center">
           <h2 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-            Gabung <span className="text-primary font-bold">Komunitas</span> Kami
+            {t.auth_register.join}<span className="text-primary font-bold">{t.auth_register.community}</span>{t.auth_register.our}
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Mulai beli karya otentik atau daftarkan toko Anda
+            {t.auth_register.subtitle}
           </p>
         </div>
 
@@ -79,7 +81,7 @@ export default function RegisterPage() {
             {/* Full Name Field */}
             <div>
               <label htmlFor="name" className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Nama Lengkap
+                {t.auth_register.name_label}
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -88,7 +90,7 @@ export default function RegisterPage() {
                 <input
                   id="name"
                   type="text"
-                  placeholder="Nama Lengkap Anda"
+                  placeholder={t.auth_register.name_placeholder}
                   className={`w-full rounded-lg border bg-background py-1.5 pl-9 pr-3 text-xs text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
                     errors.name ? "border-destructive" : "border-border"
                   }`}
@@ -103,7 +105,7 @@ export default function RegisterPage() {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Alamat Email
+                {t.auth_register.email_label}
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -127,7 +129,7 @@ export default function RegisterPage() {
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Kata Sandi
+                {t.auth_register.password_label}
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -151,7 +153,7 @@ export default function RegisterPage() {
             {/* Confirm Password Field */}
             <div>
               <label htmlFor="confirmPassword" className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Konfirmasi Kata Sandi
+                {t.auth_register.confirm_password_label}
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -183,10 +185,10 @@ export default function RegisterPage() {
             {isSubmitting ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Sedang Mendaftar...</span>
+                <span>{t.auth_register.registering}</span>
               </>
             ) : (
-              <span>Daftar Akun</span>
+              <span>{t.auth_register.register}</span>
             )}
           </button>
         </form>
@@ -197,7 +199,7 @@ export default function RegisterPage() {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-[10px] uppercase">
-            <span className="bg-card px-2 text-muted-foreground font-semibold">Atau Lanjutkan Dengan</span>
+            <span className="bg-card px-2 text-muted-foreground font-semibold">{t.auth_register.or_continue_with}</span>
           </div>
         </div>
 
@@ -215,14 +217,14 @@ export default function RegisterPage() {
               <path d="M12,6c1.66,0,3.14,0.67,4.24,1.76l2.06-2.06C16.59,2.97,14.42,2,12,2C7.03,2,3,6.03,3,11h3.62C7.12,9.05,9.31,7.8,12,7.8c0.04,0,12,6,12,6z" fill="#4285F4" />
             </g>
           </svg>
-          <span>Daftar dengan Google</span>
+          <span>{t.auth_register.register_google}</span>
         </button>
 
         {/* Footer Link */}
         <p className="text-center text-xs text-muted-foreground mt-3">
-          Sudah memiliki akun?{" "}
+          {t.auth_register.have_account}
           <Link href="/login" className="text-primary hover:underline font-semibold">
-            Masuk Disini
+            {t.auth_register.login_here}
           </Link>
         </p>
 

@@ -2,6 +2,7 @@
 
 import { Package } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TopProduct {
   id: string;
@@ -18,11 +19,12 @@ interface TopProductsListProps {
 }
 
 export default function TopProductsList({ products }: TopProductsListProps) {
+  const { t } = useLanguage();
   if (!products || products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center bg-muted/10 rounded-xl border border-dashed border-border h-[300px]">
         <Package className="h-10 w-10 text-muted-foreground/30 mb-3" />
-        <p className="text-sm text-muted-foreground">Belum ada data penjualan produk.</p>
+        <p className="text-sm text-muted-foreground">{t.seller_dashboard.prod_no_data}</p>
       </div>
     );
   }
@@ -50,14 +52,14 @@ export default function TopProductsList({ products }: TopProductsListProps) {
               {product.title}
             </h4>
             <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-              <span className="font-bold text-foreground">{product.totalSold} terjual</span>
+              <span className="font-bold text-foreground">{product.totalSold}{t.seller_dashboard.sold}</span>
               <span>•</span>
               <span>Rp {product.price.toLocaleString("id-ID")}</span>
             </div>
           </div>
           
           <div className="text-right shrink-0">
-            <p className="text-xs text-muted-foreground mb-0.5">Omzet</p>
+            <p className="text-xs text-muted-foreground mb-0.5">{t.seller_dashboard.revenue}</p>
             <p className="font-bold text-sm text-green-600 dark:text-green-500">
               Rp {product.totalRevenue.toLocaleString("id-ID")}
             </p>

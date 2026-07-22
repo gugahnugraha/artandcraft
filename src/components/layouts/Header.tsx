@@ -92,7 +92,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background border-b border-border shadow-sm">
+    <header className="sticky top-0 z-50 w-full glass transition-all duration-300">
       {announcement && (
         <div style={{ backgroundColor: "var(--primary)" }} className="text-white py-2.5 px-4 text-center text-xs font-semibold tracking-wide animate-fade-in shadow-inner relative z-50">
           {announcement}
@@ -128,7 +128,7 @@ export default function Header() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t.header.search_placeholder}
-                className="w-full rounded-full border-2 border-border bg-background py-2.5 pl-5 pr-12 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/15 focus:outline-none transition-all duration-300 shadow-sm hover:border-primary/50"
+                className="w-full rounded-full border border-border/70 bg-background/50 backdrop-blur-sm py-2.5 pl-5 pr-12 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all duration-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] hover:border-primary/50"
               />
               <button 
                 type="submit" 
@@ -291,16 +291,16 @@ export default function Header() {
 
             {/* Mega Menu Dropdown for ALL Categories */}
             {activeCategoryHover === "all-categories-trigger" && (
-              <div className="absolute left-0 top-full mt-1 w-[680px] rounded-3xl border border-border bg-card p-5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200 grid grid-cols-3 gap-4">
+              <div className="absolute left-0 top-full mt-2 w-[720px] rounded-3xl glass-card p-6 shadow-2xl z-50 animate-in fade-in slide-in-from-top-4 duration-300 grid grid-cols-3 gap-5 border-t-white/40">
                 {categories.slice(0, 9).map((cat) => (
-                  <div key={cat.id} className="space-y-1.5 p-2 rounded-xl hover:bg-muted/30 transition-colors">
+                  <div key={cat.id} className="space-y-1.5 p-3 rounded-2xl hover:bg-muted/40 transition-all hover:shadow-sm group/item">
                     <Link
                       href={`/search?category=${cat.slug}`}
-                      className="font-bold text-xs text-foreground hover:text-primary flex items-center justify-between"
+                      className="font-bold text-xs text-foreground group-hover/item:text-primary flex items-center justify-between transition-colors"
                       onClick={() => setActiveCategoryHover(null)}
                     >
                       <span>{cat.name}</span>
-                      <span className="text-[10px] font-normal text-muted-foreground">&rarr;</span>
+                      <span className="text-[10px] font-normal text-muted-foreground opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-1 transition-all duration-300">&rarr;</span>
                     </Link>
                     {cat.subcategories && cat.subcategories.length > 0 && (
                       <div className="space-y-1 pl-1">

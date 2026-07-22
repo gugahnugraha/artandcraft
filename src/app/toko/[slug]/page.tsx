@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { id } from "@/locales/id";
+import { en } from "@/locales/en";
 import StoreFollowButton from "./StoreFollowButton";
 import StoreTabs from "./StoreTabs";
 import AskSellerButton from "@/components/ui/AskSellerButton";
@@ -59,6 +62,10 @@ export const dynamic = "force-dynamic";
 export default async function StorefrontPage({ params }: PageProps) {
   const { slug } = await params;
   const session = await auth();
+
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("language")?.value || "id";
+  const t = lang === "en" ? en : id;
 
   let seller: any = null;
   let products: any[] = [];
@@ -205,7 +212,7 @@ export default async function StorefrontPage({ params }: PageProps) {
               </h1>
               {seller.isVerified && (
                 <span className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                  <CheckCircle2 className="h-3 w-3" /> Terverifikasi
+                  <CheckCircle2 className="h-3 w-3" /> {t.store.verified}
                 </span>
               )}
             </div>
@@ -218,17 +225,17 @@ export default async function StorefrontPage({ params }: PageProps) {
               {avgRating > 0 && (
                 <span className="flex items-center gap-1 text-amber-500">
                   <Star className="h-3.5 w-3.5 fill-amber-500" />
-                  {avgRating.toFixed(1)} Rating
-                  <span className="text-muted-foreground">({reviews.length} ulasan)</span>
+                  {avgRating.toFixed(1)} {t.store.rating}
+                  <span className="text-muted-foreground">({reviews.length} {t.store.reviews_count})</span>
                 </span>
               )}
               <span className="flex items-center gap-1">
                 <Users className="h-3.5 w-3.5 text-primary" />
-                <strong>{seller.followersCount}</strong> Pengikut
+                <strong>{seller.followersCount}</strong> {t.store.followers_count}
               </span>
               <span className="flex items-center gap-1">
                 <Package className="h-3.5 w-3.5 text-primary" />
-                <strong>{products.length}</strong> Produk
+                <strong>{products.length}</strong> {t.store.products_count}
               </span>
             </div>
           </div>
@@ -254,11 +261,10 @@ export default async function StorefrontPage({ params }: PageProps) {
             <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
               <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
                 <ShieldCheck className="h-4 w-4 text-primary" />
-                Tentang Toko
+                {t.store.about_store}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {seller.storeDescription ||
-                  "Pengrajin ini belum mengunggah deskripsi atau cerita tokonya."}
+                {seller.storeDescription || t.store.no_description}
               </p>
             </div>
 
@@ -267,7 +273,7 @@ export default async function StorefrontPage({ params }: PageProps) {
               <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
                 <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
                   <ShieldCheck className="h-4 w-4 text-primary" />
-                  Kebijakan Toko
+                  {t.store.store_policy}
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">
                   {seller.storePolicy}
@@ -277,23 +283,23 @@ export default async function StorefrontPage({ params }: PageProps) {
 
             {/* Stats */}
             <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
-              <h3 className="font-semibold text-foreground mb-3 text-sm">Statistik</h3>
+              <h3 className="font-semibold text-foreground mb-3 text-sm">{t.store.statistics}</h3>
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Produk</span>
+                  <span className="text-muted-foreground">{t.store.total_products}</span>
                   <span className="font-bold">{products.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Ulasan</span>
+                  <span className="text-muted-foreground">{t.store.total_reviews}</span>
                   <span className="font-bold">{reviews.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Pengikut</span>
+                  <span className="text-muted-foreground">{t.store.followers_count}</span>
                   <span className="font-bold">{seller.followersCount}</span>
                 </div>
                 {avgRating > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Rating</span>
+                    <span className="text-muted-foreground">{t.store.rating}</span>
                     <span className="font-bold flex items-center gap-1 text-amber-500">
                       <Star className="h-3.5 w-3.5 fill-amber-500" />
                       {avgRating.toFixed(1)}

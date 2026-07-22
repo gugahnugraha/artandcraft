@@ -8,9 +8,18 @@ import {
   ArrowRight, Clock, CheckCircle2, Truck
 } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Dashboard Saya | ArtAndCraft.id",
-};
+import { cookies } from "next/headers";
+import { id } from "@/locales/id";
+import { en } from "@/locales/en";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : id;
+  return {
+    title: t.dashboard.title,
+  };
+}
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-700",
@@ -40,6 +49,10 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=/dashboard");
 
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : id;
+
   const [orders, wishlistCount, addressCount] = await Promise.all([
     prisma.order.findMany({
       where: { userId: session.user.id },
@@ -68,7 +81,7 @@ export default async function DashboardPage() {
 
   const stats = [
     {
-      label: "Total Pesanan",
+      label: t.dashboard.total_orders,
       value: orders.length,
       icon: ShoppingBag,
       color: "text-primary",
@@ -76,7 +89,7 @@ export default async function DashboardPage() {
       href: "/dashboard/orders",
     },
     {
-      label: "Pesanan Aktif",
+      label: t.dashboard.active_orders,
       value: activeOrders,
       icon: Clock,
       color: "text-blue-600",
@@ -84,7 +97,7 @@ export default async function DashboardPage() {
       href: "/dashboard/orders",
     },
     {
-      label: "Wishlist",
+      label: t.dashboard.wishlist,
       value: wishlistCount,
       icon: Heart,
       color: "text-rose-500",
@@ -92,7 +105,7 @@ export default async function DashboardPage() {
       href: "#",
     },
     {
-      label: "Alamat Tersimpan",
+      label: t.dashboard.saved_addresses,
       value: addressCount,
       icon: MapPin,
       color: "text-emerald-600",
@@ -105,10 +118,10 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-serif text-2xl font-bold text-foreground">
-          Selamat datang, {session.user.name?.split(" ")[0] || "Pembeli"}
+          {t.dashboard.welcome} {session.user.name?.split(" ")[0] || t.dashboard.buyer}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Kelola pesanan dan profil Anda dari sini.
+          {t.dashboard.subtitle}
         </p>
       </div>
 
@@ -133,28 +146,28 @@ export default async function DashboardPage() {
       <div className="bg-card rounded-2xl border border-border shadow-sm">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="font-bold text-foreground flex items-center gap-2">
-            <Package className="h-4 w-4 text-primary" /> Pesanan Terbaru
+            <Package className="h-4 w-4 text-primary" /> {t.dashboard.recent_orders}
           </h2>
           <Link
             href="/dashboard/orders"
             className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
           >
-            Lihat Semua <ArrowRight className="h-3 w-3" />
+            {t.dashboard.see_all} <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
 
         {orders.length === 0 ? (
           <div className="py-16 flex flex-col items-center text-center px-4">
             <ShoppingBag className="h-12 w-12 text-muted-foreground/30 mb-4" />
-            <p className="font-semibold text-foreground mb-1">Belum ada pesanan</p>
+            <p className="font-semibold text-foreground mb-1">{t.dashboard.no_orders}</p>
             <p className="text-sm text-muted-foreground mb-6">
-              Temukan produk kerajinan tangan pilihan dari pengrajin Indonesia.
+              {t.dashboard.no_orders_desc}
             </p>
             <Link
               href="/"
               className="rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              Mulai Belanja
+              {t.dashboard.start_shopping}
             </Link>
           </div>
         ) : (
@@ -180,10 +193,10 @@ export default async function DashboardPage() {
                     #{order.id.substring(0, 8).toUpperCase()}
                   </p>
                   <p className="text-sm font-semibold text-foreground truncate">
-                    {order.items[0]?.product?.title || "Produk"}
+                    {order.items[0]?.product?.title || t.dashboard.product}
                     {order.items.length > 1 && (
                       <span className="text-muted-foreground font-normal">
-                        {" "}+{order.items.length - 1} produk lainnya
+                        {" "}+{order.items.length - 1} {t.dashboard.other_products}
                       </span>
                     )}
                   </p>
@@ -200,7 +213,7 @@ export default async function DashboardPage() {
                       statusColors[order.status] || "bg-gray-100 text-gray-600"
                     }`}
                   >
-                    {statusLabels[order.status] || order.status}
+                    {t.order_status[order.status as keyof typeof t.order_status] || order.status}
                   </span>
                   <p className="text-sm font-bold text-foreground">
                     Rp {Number(order.grandTotal).toLocaleString("id-ID")}
@@ -222,8 +235,8 @@ export default async function DashboardPage() {
             <MapPin className="h-5 w-5 text-emerald-600" />
           </div>
           <div>
-            <p className="text-sm font-bold text-foreground">Alamat Saya</p>
-            <p className="text-xs text-muted-foreground">Kelola alamat pengiriman</p>
+            <p className="text-sm font-bold text-foreground">{t.dashboard.my_addresses}</p>
+            <p className="text-xs text-muted-foreground">{t.dashboard.manage_addresses}</p>
           </div>
           <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:text-primary transition-colors" />
         </Link>
@@ -235,8 +248,8 @@ export default async function DashboardPage() {
             <CheckCircle2 className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-bold text-foreground">Profil Saya</p>
-            <p className="text-xs text-muted-foreground">Update nama & password</p>
+            <p className="text-sm font-bold text-foreground">{t.dashboard.my_profile}</p>
+            <p className="text-xs text-muted-foreground">{t.dashboard.update_profile}</p>
           </div>
           <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:text-primary transition-colors" />
         </Link>
@@ -248,8 +261,8 @@ export default async function DashboardPage() {
             <Truck className="h-5 w-5 text-indigo-600" />
           </div>
           <div>
-            <p className="text-sm font-bold text-foreground">Belanja Lagi</p>
-            <p className="text-xs text-muted-foreground">Jelajahi produk baru</p>
+            <p className="text-sm font-bold text-foreground">{t.dashboard.shop_again}</p>
+            <p className="text-xs text-muted-foreground">{t.dashboard.explore_new}</p>
           </div>
           <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:text-primary transition-colors" />
         </Link>

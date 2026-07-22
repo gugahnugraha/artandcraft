@@ -4,12 +4,14 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { KeyRound, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // ─── Inner component that uses useSearchParams ────────────────────────────────
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const { t } = useLanguage();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,9 +21,9 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     if (!token) {
-      setError("Token reset tidak ditemukan atau tidak valid.");
+      setError(t.auth_reset.err_invalid_token);
     }
-  }, [token]);
+  }, [token, t]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,17 +31,17 @@ function ResetPasswordForm() {
     setSuccess(null);
 
     if (!token) {
-      setError("Token tidak ditemukan");
+      setError(t.auth_reset.err_no_token);
       return;
     }
 
     if (password.length < 6) {
-      setError("Kata sandi minimal 6 karakter");
+      setError(t.auth_reset.err_password_length);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Konfirmasi kata sandi tidak cocok");
+      setError(t.auth_reset.err_password_mismatch);
       return;
     }
 
@@ -59,10 +61,10 @@ function ResetPasswordForm() {
           router.push("/login");
         }, 3000);
       } else {
-        setError(data.message || "Gagal mengatur ulang kata sandi.");
+        setError(data.message || t.auth_reset.err_failed);
       }
     } catch {
-      setError("Terjadi kesalahan sistem.");
+      setError(t.auth_reset.err_system);
     } finally {
       setIsSubmitting(false);
     }
@@ -75,10 +77,10 @@ function ResetPasswordForm() {
         {/* Header */}
         <div className="text-center">
           <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground">
-            Atur Ulang <span className="text-primary italic">Kata Sandi</span>
+            {t.auth_reset.reset}<span className="text-primary italic">{t.auth_reset.password}</span>
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Silakan masukkan kata sandi baru untuk akun Anda
+            {t.auth_reset.subtitle}
           </p>
         </div>
 
@@ -95,7 +97,7 @@ function ResetPasswordForm() {
             <CheckCircle className="h-4 w-4 shrink-0 mt-0.5 text-green-600" />
             <div>
               <p className="font-semibold">{success}</p>
-              <p className="text-xs mt-1 text-green-600">Mengalihkan ke halaman masuk dalam beberapa detik...</p>
+              <p className="text-xs mt-1 text-green-600">{t.auth_reset.redirecting}</p>
             </div>
           </div>
         )}
@@ -106,7 +108,7 @@ function ResetPasswordForm() {
             <div className="space-y-4">
               <div>
                 <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  Kata Sandi Baru
+                  {t.auth_reset.new_password_label}
                 </label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -125,7 +127,7 @@ function ResetPasswordForm() {
 
               <div>
                 <label htmlFor="confirmPassword" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  Konfirmasi Kata Sandi Baru
+                  {t.auth_reset.confirm_password_label}
                 </label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -151,10 +153,10 @@ function ResetPasswordForm() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Memperbarui Sandi...</span>
+                  <span>{t.auth_reset.updating}</span>
                 </>
               ) : (
-                <span>Perbarui Kata Sandi</span>
+                <span>{t.auth_reset.update}</span>
               )}
             </button>
           </form>
@@ -162,9 +164,9 @@ function ResetPasswordForm() {
 
         {/* Footer Link */}
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Kembali ke{" "}
+          {t.auth_forgot.back_to}
           <Link href="/login" className="text-primary hover:underline font-semibold">
-            Halaman Masuk
+            {t.auth_forgot.login_page}
           </Link>
         </p>
 

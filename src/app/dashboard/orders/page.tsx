@@ -5,9 +5,18 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Package, ShoppingBag, ChevronRight } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Pesanan Saya | ArtAndCraft.id",
-};
+import { cookies } from "next/headers";
+import { id } from "@/locales/id";
+import { en } from "@/locales/en";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : id;
+  return {
+    title: t.orders.title,
+  };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -22,20 +31,14 @@ const statusColors: Record<string, string> = {
   REFUNDED: "bg-gray-100 text-gray-600 border-gray-200",
 };
 
-const statusLabels: Record<string, string> = {
-  PENDING: "Menunggu",
-  AWAITING_PAYMENT: "Menunggu Bayar",
-  PAID: "Dibayar",
-  PROCESSING: "Sedang Diproses",
-  SHIPPED: "Dalam Pengiriman",
-  DELIVERED: "Pesanan Selesai",
-  CANCELLED: "Dibatalkan",
-  REFUNDED: "Dikembalikan",
-};
 
 export default async function OrdersPage() {
   const session = await auth();
   if (!session?.user) redirect("/login?callbackUrl=/dashboard/orders");
+
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
+  const t = lang === "en" ? en : id;
 
   const orders = await prisma.order.findMany({
     where: { userId: session.user.id },
@@ -55,9 +58,9 @@ export default async function OrdersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-2xl font-bold text-foreground">Pesanan Saya</h1>
+        <h1 className="font-serif text-2xl font-bold text-foreground">{t.orders.heading}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {orders.length} pesanan ditemukan
+          {orders.length} {t.orders.found}
         </p>
       </div>
 
@@ -65,16 +68,16 @@ export default async function OrdersPage() {
         <div className="bg-card rounded-2xl border border-border shadow-sm py-20 flex flex-col items-center text-center px-4">
           <ShoppingBag className="h-16 w-16 text-muted-foreground/20 mb-4" />
           <h2 className="font-serif text-xl font-bold text-foreground mb-2">
-            Belum Ada Pesanan
+            {t.orders.empty_title}
           </h2>
           <p className="text-sm text-muted-foreground max-w-xs mb-6">
-            Mulai berbelanja produk kerajinan tangan dari pengrajin UMKM lokal Indonesia.
+            {t.orders.empty_desc}
           </p>
           <Link
             href="/"
             className="rounded-full bg-primary px-8 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Temukan Produk
+            {t.orders.find_products}
           </Link>
         </div>
       ) : (
@@ -102,7 +105,7 @@ export default async function OrdersPage() {
                     statusColors[order.status] || "bg-gray-100 text-gray-600"
                   }`}
                 >
-                  {statusLabels[order.status] || order.status}
+                  {t.order_status[order.status as keyof typeof t.order_status] || order.status}
                 </span>
               </div>
 
@@ -126,7 +129,7 @@ export default async function OrdersPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">
-                        {item.product?.title || "Produk"}
+                        {item.product?.title || t.orders.product}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {item.quantity} × Rp {Number(item.price).toLocaleString("id-ID")}
@@ -137,7 +140,7 @@ export default async function OrdersPage() {
                         href={`/produk/${item.product.slug}`}
                         className="text-xs font-semibold text-primary hover:underline shrink-0 flex items-center gap-0.5"
                       >
-                        Lihat <ChevronRight className="h-3 w-3" />
+                        {t.orders.view} <ChevronRight className="h-3 w-3" />
                       </Link>
                     )}
                   </div>
@@ -149,19 +152,19 @@ export default async function OrdersPage() {
                 <div className="text-xs text-muted-foreground">
                   {order.shippingAddress && (
                     <span>
-                      Ke: {order.shippingAddress.city},{" "}
+                      {t.orders.to}: {order.shippingAddress.city},{" "}
                       {order.shippingAddress.province}
                     </span>
                   )}
                   {order.trackingNumber && (
                     <span className="ml-3 font-mono text-foreground">
-                      Resi: {order.trackingNumber}
+                      {t.orders.tracking}: {order.trackingNumber}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="text-xs text-muted-foreground">{t.orders.total}</p>
                     <p className="text-base font-bold text-foreground">
                       Rp {Number(order.grandTotal).toLocaleString("id-ID")}
                     </p>
@@ -170,7 +173,7 @@ export default async function OrdersPage() {
                     href={`/dashboard/orders/${order.id}`}
                     className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline shrink-0"
                   >
-                    Detail <ChevronRight className="h-3 w-3" />
+                    {t.orders.detail} <ChevronRight className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
