@@ -171,8 +171,30 @@ export default async function StorefrontPage({ params }: PageProps) {
 
   const avgRating = seller.storeRating ?? 0;
 
+  const storeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    name: seller.storeName,
+    description: seller.storeDescription || undefined,
+    image: seller.storeLogo || seller.storeBanner || undefined,
+    url: `${BASE_URL}/toko/${seller.storeSlug}`,
+    aggregateRating:
+      reviews.length > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: avgRating.toFixed(1),
+            reviewCount: reviews.length,
+          }
+        : undefined,
+  };
+
   return (
-    <div className="flex-1 bg-background">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }}
+      />
+      <div className="flex-1 bg-background">
       {/* ── Store Hero Banner ── */}
       <div className="w-full h-52 md:h-72 bg-gradient-to-r from-primary/40 via-primary/20 to-secondary/30 relative">
         {seller.storeBanner && (
@@ -317,5 +339,6 @@ export default async function StorefrontPage({ params }: PageProps) {
         </div>
       </div>
     </div>
-  );
+  </>
+);
 }

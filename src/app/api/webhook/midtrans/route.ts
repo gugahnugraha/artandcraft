@@ -16,17 +16,28 @@ export async function POST(req: Request) {
       payment_type,
     } = body;
 
+    if (!order_id || !signature_key || !status_code || !gross_amount) {
+      console.error("[SECURITY] Midtrans Webhook: Payload tidak lengkap.");
+      return NextResponse.json({ error: "Invalid payload format" }, { status: 400 });
+    }
+
     const serverKey = process.env.MIDTRANS_SERVER_KEY || "";
 
-    // Verify signature key for security
-    const hash = crypto
-      .createHash("sha512")
-      .update(order_id + status_code + gross_amount + serverKey)
-      .digest("hex");
+    if (!serverKey) {
+      console.warn("[SECURITY WARNING] MIDTRANS_SERVER_KEY tidak diset di environment variables!");
+    }
 
-    if (hash !== signature_key) {
-      console.error("Invalid Midtrans signature key");
-      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    // Strict SHA-512 Signature verification
+    if (serverKey) {
+      const expectedSignature = crypto
+        .createHash("sha512")
+        .update(`${order_id}${status_code}${gross_amount}${serverKey}`)
+        .digest("hex");
+
+      if (signature_key !== expectedSignature) {
+        console.error(`[SECURITY ALERT] Signature key mismatch untuk Order ID ${order_id}! Potential forgery attempt.`);
+        return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+      }
     }
 
     // Determine order status based on Midtrans response
@@ -55,67 +66,109 @@ export async function POST(req: Request) {
       dbPaymentStatus = "pending";
     }
 
-    // Find the order
+    // Find order with items and products
     const order = await prisma.order.findUnique({
       where: { id: order_id },
-      include: { items: true },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                seller: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!order) {
-      console.error(`Order not found: ${order_id}`);
+      console.error(`[WEBHOOK] Order ID tidak ditemukan di DB: ${order_id}`);
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Update order status in a transaction
+    const isTransitionToPaid = newOrderStatus === "PAID" && order.status !== "PAID";
+    const isTransitionToCancelled = newOrderStatus === "CANCELLED" && order.status !== "CANCELLED";
+
+    // Atomically execute DB updates
     await prisma.$transaction(async (tx) => {
+      // 1. Update Order State
       await tx.order.update({
         where: { id: order_id },
         data: {
           status: newOrderStatus as any,
           paymentStatus: dbPaymentStatus,
-          paymentMethod: payment_type,
+          paymentMethod: payment_type || order.paymentMethod,
         },
       });
 
-      // If cancelled, restore stock
-      if (newOrderStatus === "CANCELLED" && order.status !== "CANCELLED") {
+      // 2. Restore stock if cancelled
+      if (isTransitionToCancelled) {
         for (const item of order.items) {
           await tx.product.update({
             where: { id: item.productId },
             data: {
-              stock: {
-                increment: item.quantity,
-              },
+              stock: { increment: item.quantity },
+            },
+          });
+        }
+
+        // Notification for Buyer
+        await tx.notification.create({
+          data: {
+            userId: order.userId,
+            title: "Pesanan Dibatalkan ⚠️",
+            message: `Pesanan #${order_id.substring(0, 8)} telah dibatalkan karena waktu pembayaran telah habis atau pembayaran ditolak.`,
+            link: `/dashboard/orders/${order.id}`,
+          },
+        });
+      }
+
+      // 3. Buyer & Seller Notifications when Order becomes PAID
+      if (isTransitionToPaid) {
+        // Buyer Notification
+        await tx.notification.create({
+          data: {
+            userId: order.userId,
+            title: "Pembayaran Berhasil 🎉",
+            message: `Pembayaran untuk pesanan #${order_id.substring(0, 8)} telah diverifikasi. Pengrajin akan segera menyiapkan barang Anda.`,
+            link: `/dashboard/orders/${order.id}`,
+          },
+        });
+
+        // Group purchased items by seller and notify each seller
+        const sellersMap = new Map<string, { sellerUserId: string; storeName: string; totalAmount: number }>();
+
+        for (const item of order.items) {
+          if (item.product?.seller) {
+            const seller = item.product.seller;
+            const existing = sellersMap.get(seller.id) || {
+              sellerUserId: seller.userId,
+              storeName: seller.storeName,
+              totalAmount: 0,
+            };
+            existing.totalAmount += Number(item.price) * item.quantity;
+            sellersMap.set(seller.id, existing);
+          }
+        }
+
+        for (const [, sellerData] of sellersMap) {
+          await tx.notification.create({
+            data: {
+              userId: sellerData.sellerUserId,
+              title: "Pesanan Baru Masuk! 📦",
+              message: `Toko ${sellerData.storeName} menerima pesanan baru #${order_id.substring(0, 8)} senilai Rp ${sellerData.totalAmount.toLocaleString("id-ID")}. Segera proses dan kirim pesanan!`,
+              link: `/seller/orders`,
             },
           });
         }
       }
-
-      // Add Notification for the user
-      let notifTitle = "";
-      let notifMessage = "";
-      if (newOrderStatus === "PAID" && order.status !== "PAID") {
-        notifTitle = "Pembayaran Berhasil";
-        notifMessage = `Pembayaran untuk pesanan ${order_id.substring(0,8)} telah berhasil dikonfirmasi.`;
-      } else if (newOrderStatus === "CANCELLED" && order.status !== "CANCELLED") {
-        notifTitle = "Pesanan Dibatalkan";
-        notifMessage = `Pesanan ${order_id.substring(0,8)} dibatalkan karena waktu pembayaran habis.`;
-      }
-
-      if (notifTitle) {
-        await tx.notification.create({
-          data: {
-            userId: order.userId,
-            title: notifTitle,
-            message: notifMessage,
-          }
-        });
-      }
     });
 
-    return NextResponse.json({ success: true, message: "OK" }, { status: 200 });
+    console.log(`[WEBHOOK SUCCESS] Order ${order_id} updated to status: ${newOrderStatus}`);
+    return NextResponse.json({ success: true, status: newOrderStatus }, { status: 200 });
   } catch (error: any) {
-    console.error("Midtrans Webhook Error:", error);
+    console.error("Midtrans Webhook Internal Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

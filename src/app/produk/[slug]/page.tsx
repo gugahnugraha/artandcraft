@@ -21,31 +21,63 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const baseUrl = process.env.NEXTAUTH_URL || "https://www.artandcraft.id";
+
   try {
     const product = await prisma.product.findUnique({
       where: { slug },
       include: { seller: true, category: true },
     });
-    if (!product) return { title: "Product Not Found | ArtAndCraft.id" };
+    if (!product) return { title: "Produk Tidak Ditemukan | ArtAndCraft.id" };
+
     const price = Number(product.price);
     const discount = Number(product.discount);
     const finalPrice = discount > 0 ? price * (1 - discount / 100) : price;
+    const descSnippet = product.description.replace(/(\r\n|\n|\r)/gm, " ").slice(0, 160);
+    const imageUrl = product.photos[0] || `${baseUrl}/og-image.jpg`;
+
     return {
-      title: `${product.title} | ArtAndCraft.id`,
-      description: product.description.slice(0, 160),
+      title: `${product.title} - ${product.seller?.storeName || "ArtAndCraft.id"}`,
+      description: descSnippet,
+      keywords: [
+        product.title,
+        product.category?.name || "Kerajinan Tangan",
+        product.seller?.storeName || "Artisan",
+        "handmade indonesia",
+        "artandcraft",
+      ],
+      alternates: {
+        canonical: `${baseUrl}/produk/${product.slug}`,
+      },
       openGraph: {
-        title: product.title,
-        description: product.description.slice(0, 160),
-        images: product.photos[0] ? [{ url: product.photos[0] }] : [],
         type: "website",
+        url: `${baseUrl}/produk/${product.slug}`,
+        title: `${product.title} - ${product.seller?.storeName || "ArtAndCraft.id"}`,
+        description: descSnippet,
+        siteName: "ArtAndCraft.id",
+        images: [
+          {
+            url: imageUrl,
+            width: 800,
+            height: 800,
+            alt: product.title,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: product.title,
+        description: descSnippet,
+        images: [imageUrl],
       },
       other: {
         "product:price:amount": String(finalPrice),
         "product:price:currency": "IDR",
+        "product:availability": product.stock > 0 ? "in stock" : "out of stock",
       },
     };
   } catch {
-    return { title: "Product | ArtAndCraft.id" };
+    return { title: "Detail Produk | ArtAndCraft.id" };
   }
 }
 

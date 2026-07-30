@@ -21,22 +21,34 @@ export async function POST(req: Request) {
     }
 
     const { email } = parsed.data;
+    const cleanEmail = email.toLowerCase().trim();
 
     // Check user existence
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
     });
 
     if (!user) {
-      // Return success anyway for security (prevent email enumeration)
+      // Return generic message for security to prevent email enumeration
       return NextResponse.json({
         message: "Jika email Anda terdaftar, link untuk mereset kata sandi telah dikirim.",
       });
     }
 
-    // Generate and send token
-    const tokenObj = await generatePasswordResetToken(email);
-    await sendPasswordResetEmail(email, tokenObj.token);
+    // Generate and send token with cooldown protection
+    try {
+      const tokenObj = await generatePasswordResetToken(cleanEmail);
+      await sendPasswordResetEmail(cleanEmail, tokenObj.token);
+    } catch (tokenErr: any) {
+      if (tokenErr.message?.startsWith("SILENT_COOLDOWN:")) {
+        const waitSec = tokenErr.message.split(":")[1];
+        return NextResponse.json(
+          { message: `Mohon tunggu ${waitSec} detik sebelum meminta email reset password baru.` },
+          { status: 429 }
+        );
+      }
+      throw tokenErr;
+    }
 
     return NextResponse.json({
       message: "Jika email Anda terdaftar, link untuk mereset kata sandi telah dikirim.",

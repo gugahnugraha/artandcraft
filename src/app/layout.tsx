@@ -10,10 +10,16 @@ import { cn } from "@/lib/utils";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+
+const baseUrl = process.env.NEXTAUTH_URL || "https://www.artandcraft.id";
 
 export const metadata: Metadata = {
-  title: "Art and Craft | Indonesian Handmade, Local Artisans & UMKM",
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: "ArtAndCraft.id — Indonesian Handmade, Local Artisans & UMKM",
+    template: "%s | ArtAndCraft.id",
+  },
   description:
     "Wadah e-commerce terpercaya untuk produk buatan tangan lokal khas Indonesia. Dukung pengrajin kreatif nusantara dan UMKM mandiri dengan kualitas premium.",
   keywords: [
@@ -23,7 +29,50 @@ export const metadata: Metadata = {
     "batik tradisional",
     "kerajinan tangan",
     "artisan lokal",
+    "tenun nusantara",
+    "keramik lokal",
   ],
+  authors: [{ name: "ArtAndCraft.id" }],
+  creator: "ArtAndCraft.id",
+  publisher: "ArtAndCraft.id",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    url: baseUrl,
+    siteName: "ArtAndCraft.id",
+    title: "ArtAndCraft.id — Indonesian Handmade & Local Artisans",
+    description:
+      "Pasar online kerajinan tangan terbaik buatan pengrajin lokal Indonesia. Batik, ukiran kayu, keramik, perhiasan etnik, dan produk kreatif nusantara.",
+    images: [
+      {
+        url: `${baseUrl}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "ArtAndCraft.id — Marketplace Kerajinan Tangan Nusantara",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ArtAndCraft.id — Indonesian Handmade & Local Artisans",
+    description:
+      "Pasar online kerajinan tangan terbaik buatan pengrajin lokal Indonesia.",
+    images: [`${baseUrl}/og-image.jpg`],
+  },
+  alternates: {
+    canonical: baseUrl,
+  },
 };
 
 export default async function RootLayout({
@@ -56,12 +105,16 @@ export default async function RootLayout({
   return (
     <html lang="id" className={cn("h-full antialiased", "font-sans", geist.variable)}>
       <head>
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           :root {
             --primary: ${primaryColor} !important;
             --ring: ${primaryColor} !important;
           }
-        `}} />
+        `,
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-200">
         <LanguageProvider>
