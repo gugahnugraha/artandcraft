@@ -11,10 +11,13 @@ const transporter = (smtpHost && smtpUser && smtpPass)
   ? nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: smtpPort === 465,
+      secure: smtpPort === 465, // true for 465, false for 587
       auth: {
         user: smtpUser,
         pass: smtpPass,
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     })
   : null;
