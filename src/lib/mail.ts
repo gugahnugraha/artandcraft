@@ -22,32 +22,43 @@ const transporter = (smtpHost && smtpUser && smtpPass)
 export async function sendVerificationEmail(email: string, token: string) {
   const confirmLink = `${appUrl}/api/auth/verify-email?token=${token}`;
 
-  console.log(`[MAIL] Verification Link for ${email}: ${confirmLink}`);
+  console.log(`[MAIL] Verification Link generated for ${email}: ${confirmLink}`);
 
   if (!transporter) {
-    console.log("[MAIL] SMTP is not configured. Email logged to console.");
+    console.warn("[MAIL] SMTP Transporter is NOT configured. Check Vercel environment variables:", {
+      SMTP_HOST: smtpHost || "MISSING",
+      SMTP_PORT: smtpPort || "MISSING",
+      SMTP_USER: smtpUser || "MISSING",
+      SMTP_PASSWORD: smtpPass ? "SET" : "MISSING",
+    });
     return;
   }
 
-  await transporter.sendMail({
-    from: smtpFrom,
-    to: email,
-    subject: "Verifikasi Email Anda - ArtAndCraft.id",
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; rounded: 12px;">
-        <h2 style="font-size: 20px; font-weight: bold; color: #1f2937; margin-bottom: 16px;">Verifikasi Email Anda</h2>
-        <p style="font-size: 14px; color: #4b5563; line-height: 1.5; margin-bottom: 24px;">
-          Terima kasih telah mendaftar di ArtAndCraft.id. Silakan klik tombol di bawah ini untuk memverifikasi alamat email Anda.
-        </p>
-        <a href="${confirmLink}" style="display: inline-block; background-color: #1f2937; color: #ffffff; padding: 12px 24px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px;">
-          Verifikasi Email
-        </a>
-        <p style="font-size: 12px; color: #9ca3af; margin-top: 24px;">
-          Jika Anda tidak meminta email ini, silakan abaikan. Link ini akan kedaluwarsa dalam 1 jam.
-        </p>
-      </div>
-    `,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: smtpFrom,
+      to: email,
+      subject: "Verifikasi Email Anda - ArtAndCraft.id",
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+          <h2 style="font-size: 20px; font-weight: bold; color: #1f2937; margin-bottom: 16px;">Verifikasi Email Anda</h2>
+          <p style="font-size: 14px; color: #4b5563; line-height: 1.5; margin-bottom: 24px;">
+            Terima kasih telah mendaftar di ArtAndCraft.id. Silakan klik tombol di bawah ini untuk memverifikasi alamat email Anda.
+          </p>
+          <a href="${confirmLink}" style="display: inline-block; background-color: #1f2937; color: #ffffff; padding: 12px 24px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 8px;">
+            Verifikasi Email
+          </a>
+          <p style="font-size: 12px; color: #9ca3af; margin-top: 24px;">
+            Jika Anda tidak meminta email ini, silakan abaikan. Link ini akan kedaluwarsa dalam 1 jam.
+          </p>
+        </div>
+      `,
+    });
+    console.log("[MAIL] Verification email sent successfully via SMTP:", info.messageId);
+  } catch (err) {
+    console.error("[MAIL] Error sending verification email via SMTP:", err);
+    throw err;
+  }
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
