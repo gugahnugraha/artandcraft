@@ -22,7 +22,7 @@ Dokumen ini adalah panduan lengkap untuk men-deploy ArtAndCraft.id ke platform V
 3. Copy **Connection String** dari tab *Connect* → pilih format `psql`
 4. Pastikan format URL seperti ini:
    ```
-   postgresql://USER:PASSWORD@HOST/neondb?sslmode=require
+   postgresql://USER:PASSWORD@HOST/neondb?sslmode=require&uselibpqcompat=true
    ```
 5. Jalankan migrasi schema:
    ```bash
