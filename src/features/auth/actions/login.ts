@@ -14,16 +14,24 @@ export async function login(data: LoginInput, callbackUrl?: string) {
 
   try {
     await signIn("credentials", {
-      email: email.toLowerCase(),
+      email: email.toLowerCase().trim(),
       password,
       redirectTo: callbackUrl || "/",
     });
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof AuthError) {
+      const causeMessage = error.cause?.err?.message || error.message || "";
+      if (causeMessage.includes("EMAIL_UNVERIFIED")) {
+        return {
+          error: "EMAIL_UNVERIFIED",
+          message: "Email Anda belum diverifikasi. Silakan periksa inbox atau folder spam email Anda untuk melakukan verifikasi.",
+        };
+      }
+
       switch (error.type) {
         case "CredentialsSignin":
-          return { error: "Email atau password salah" };
+          return { error: "Email/Username atau password salah." };
         default:
           return { error: "Gagal masuk. Terjadi masalah sistem." };
       }

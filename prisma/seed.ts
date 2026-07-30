@@ -213,157 +213,19 @@ async function main() {
     }
   }
 
-  // 3. Create Users
-  console.log("Seeding default users...");
-  const hashedPassword = await bcrypt.hash("password123", 10);
-
-  const sellerUser = await prisma.user.create({
-    data: {
-      name: "Budi Kusuma",
-      email: "seller@artandcraft.id",
-      password: hashedPassword,
-      role: Role.SELLER,
-    },
-  });
-
-  const adminPassword = await bcrypt.hash("Admin@123", 10);
+  // 3. Create Super Admin User
+  console.log("Seeding Super Admin user...");
+  const adminPassword = await bcrypt.hash(process.env.ADMIN_INITIAL_PASSWORD || "Admin@123", 10);
   await prisma.user.create({
     data: {
       name: "Super Admin",
-      email: "admin@artandcraft.id",
+      email: process.env.ADMIN_INITIAL_EMAIL || "admin@artandcraft.id",
       password: adminPassword,
       role: Role.ADMIN,
     },
   });
 
-  await prisma.user.create({
-    data: {
-      name: "Siti Rahma",
-      email: "buyer@artandcraft.id",
-      password: hashedPassword,
-      role: Role.BUYER,
-    },
-  });
-
-  // 4. Create Seller Profile
-  console.log("Seeding seller profile...");
-  const sellerProfile = await prisma.sellerProfile.create({
-    data: {
-      userId: sellerUser.id,
-      storeName: "JavArtisan Studio",
-      storeSlug: "javartisan",
-      storeDescription:
-        "JavArtisan Studio menghadirkan peralatan makan kayu jati solid, batik tulis Solo, dan gerabah Kasongan berkualitas tinggi dari pengrajin nusantara.",
-      storeLogo: "https://cdn.artandcraft.id/stores/javartisan-logo.png",
-      storeBanner: "https://cdn.artandcraft.id/stores/javartisan-banner.png",
-      storeRating: 4.9,
-      followersCount: 142,
-    },
-  });
-
-  // 5. Create Realistic Seed Products
-  console.log("Seeding sample artisan products...");
-  await prisma.product.create({
-    data: {
-      sellerId: sellerProfile.id,
-      categoryId: categoriesMap["keramik-gerabah"],
-      subcategoryId: subcategoriesMap["gerabah-kasongan"],
-      title: "Kendi Keramik Kasongan Klasik",
-      slug: "kendi-keramik-kasongan-klasik",
-      description:
-        "Kendi tanah liat tradisional yang dibuat dengan teknik putar manual oleh pengrajin Kasongan Bantul. Sangat indah digunakan sebagai dekorasi ruang tamu etnik maupun tempat penyimpanan air segar alami.",
-      price: 185000.0,
-      discount: 10.0,
-      stock: 15,
-      weight: 1200.0,
-      dimensions: "W:18cm H:28cm L:18cm",
-      sku: "KAS-KND-001",
-      photos: ["https://cdn.artandcraft.id/products/kendi-keramik.png"],
-      status: ProductStatus.ACTIVE,
-    },
-  });
-
-  await prisma.product.create({
-    data: {
-      sellerId: sellerProfile.id,
-      categoryId: categoriesMap["kerajinan-kayu"],
-      subcategoryId: subcategoriesMap["peralatan-makan-jati"],
-      title: "Mangkuk Kayu Jati Solid 20cm",
-      slug: "mangkuk-kayu-jati-solid-20cm",
-      description:
-        "Mangkuk saji premium yang dipahat utuh dari balok kayu jati tua pilihan asal Jepara. Dilapisi dengan finishing food-grade beeswax alami, sangat aman untuk menyajikan makanan hangat maupun dingin.",
-      price: 95000.0,
-      discount: 0.0,
-      stock: 45,
-      weight: 450.0,
-      dimensions: "W:20cm H:8cm L:20cm",
-      sku: "JEP-MNG-JTI",
-      photos: ["https://cdn.artandcraft.id/products/mangkuk-jati.png"],
-      status: ProductStatus.ACTIVE,
-    },
-  });
-
-  await prisma.product.create({
-    data: {
-      sellerId: sellerProfile.id,
-      categoryId: categoriesMap["batik-wastra"],
-      subcategoryId: subcategoriesMap["batik-tulis"],
-      title: "Selendang Sutera Batik Tulis Solo",
-      slug: "selendang-sutera-batik-tulis-solo",
-      description:
-        "Kain selendang sutera mewah bermotif Parang Kusumo klasik, dibatik manual menggunakan canting tulis dan malam tradisional. Memerlukan waktu pengerjaan 3 bulan untuk menjamin presisi warna.",
-      price: 1250000.0,
-      discount: 5.0,
-      stock: 3,
-      weight: 200.0,
-      dimensions: "W:50cm H:1cm L:200cm",
-      sku: "SOL-SLD-SUT",
-      photos: ["https://cdn.artandcraft.id/products/selendang-batik.png"],
-      status: ProductStatus.ACTIVE,
-    },
-  });
-
-  await prisma.product.create({
-    data: {
-      sellerId: sellerProfile.id,
-      categoryId: categoriesMap["anyaman-rotan"],
-      subcategoryId: subcategoriesMap["tas-rotan-bali"],
-      title: "Tas Rotan Anyaman Bulat Bali",
-      slug: "tas-rotan-anyaman-bulat-bali",
-      description:
-        "Tas selempang rotan khas Bali dengan pola anyaman ata rapi dan tali kulit asli. Dilapisi kain batik interior untuk keamanan barang bawaan Anda.",
-      price: 245000.0,
-      discount: 15.0,
-      stock: 20,
-      weight: 350.0,
-      dimensions: "W:20cm H:20cm L:8cm",
-      sku: "BAL-TAS-ROT",
-      photos: ["https://cdn.artandcraft.id/products/tas-rotan-bali.png"],
-      status: ProductStatus.ACTIVE,
-    },
-  });
-
-  await prisma.product.create({
-    data: {
-      sellerId: sellerProfile.id,
-      categoryId: categoriesMap["perhiasan-aksesori"],
-      subcategoryId: subcategoriesMap["cincin-perak-bali"],
-      title: "Cincin Perak Ukir Kawung Bali",
-      slug: "cincin-perak-ukir-kawung-bali",
-      description:
-        "Cincin terbuat dari perak murni 925 yang diukir dengan detail motif Kawung Celuk Bali. Desain etnik nan elegan cocok untuk koleksi perhiasan pria maupun wanita.",
-      price: 320000.0,
-      discount: 0.0,
-      stock: 8,
-      weight: 15.0,
-      dimensions: "W:2cm H:2cm L:2cm",
-      sku: "BAL-CNC-PRK",
-      photos: ["https://cdn.artandcraft.id/products/cincin-perak.png"],
-      status: ProductStatus.ACTIVE,
-    },
-  });
-
-  console.log("Seeding completed successfully!");
+  console.log("✅ Production seeding completed successfully (Taxonomy & Admin created, no dummy listings)!");
   await pool.end();
 }
 

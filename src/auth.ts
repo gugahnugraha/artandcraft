@@ -10,6 +10,7 @@ import { Role } from "@prisma/client";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   providers: [
@@ -25,25 +26,37 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!parsedCredentials.success) return null;
 
-        const { email, password } = parsedCredentials.data;
-        const user = await prisma.user.findUnique({
-          where: { email },
+        const { email: identifier, password } = parsedCredentials.data;
+        const normalizedIdentifier = identifier.toLowerCase().trim();
+
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: normalizedIdentifier },
+              { username: normalizedIdentifier },
+            ],
+          },
         });
+
         if (!user || !user.password) return null;
 
         const passwordsMatch = await bcrypt.compare(password, user.password);
-        if (passwordsMatch) {
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            image: user.image,
-            role: user.role,
-            emailVerified: user.emailVerified,
-          };
+        if (!passwordsMatch) return null;
+
+        if (!user.emailVerified) {
+          throw new Error("EMAIL_UNVERIFIED");
         }
 
-        return null;
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          username: user.username,
+          password: user.password,
+          image: user.image,
+          role: user.role,
+          emailVerified: user.emailVerified,
+        };
       },
     }),
   ],

@@ -12,7 +12,6 @@ import {
   CreditCard,
   ChevronLeft,
   CircleDot,
-  CircleDot,
   CircleCheck,
 } from "lucide-react";
 import { cookies } from "next/headers";

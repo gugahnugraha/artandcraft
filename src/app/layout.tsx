@@ -31,7 +31,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error("Auth session error in RootLayout:", error);
+  }
 
   // Query platform configs for visual styling
   let primaryColor = "#0DA9BA";

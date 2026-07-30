@@ -19,8 +19,12 @@ function LoginForm() {
   const { t } = useLanguage();
 
   const [error, setError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<boolean>(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastIdentifier, setLastIdentifier] = useState("");
 
   useEffect(() => {
     const verified = searchParams.get("verified");
@@ -57,6 +61,9 @@ function LoginForm() {
 
   const onSubmit = async (data: LoginInput) => {
     setError(null);
+    setUnverifiedEmail(false);
+    setResendStatus(null);
+    setLastIdentifier(data.email);
     setIsSubmitting(true);
 
     try {
@@ -65,7 +72,12 @@ function LoginForm() {
 
       const res = await login(data, callbackUrl);
       if (res?.error) {
-        setError(res.error);
+        if (res.error === "EMAIL_UNVERIFIED") {
+          setUnverifiedEmail(true);
+          setError(res.message || "Email Anda belum diverifikasi. Silakan periksa inbox/spam email Anda.");
+        } else {
+          setError(res.error);
+        }
         setIsSubmitting(false);
       } else {
         router.push(callbackUrl || "/");
@@ -76,6 +88,25 @@ function LoginForm() {
         setError(t.auth_login.err_system);
         setIsSubmitting(false);
       }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!lastIdentifier) return;
+    setIsResending(true);
+    setResendStatus(null);
+    try {
+      const { resendVerificationEmail } = await import("@/features/auth/actions/resend-verification");
+      const res = await resendVerificationEmail(lastIdentifier);
+      if (res.error) {
+        setResendStatus(`⚠️ ${res.error}`);
+      } else if (res.message) {
+        setResendStatus(`✓ ${res.message}`);
+      }
+    } catch {
+      setResendStatus("⚠️ Gagal mengirim email verifikasi.");
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -95,9 +126,26 @@ function LoginForm() {
 
         {/* Global Error Banner */}
         {error && (
-          <div className="flex items-center gap-2.5 rounded-lg bg-destructive/10 border border-destructive/20 p-3.5 text-sm text-destructive">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3.5 text-xs text-destructive space-y-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+            {unverifiedEmail && (
+              <div className="pt-1 border-t border-destructive/20">
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={isResending}
+                  className="w-full py-1.5 px-2 bg-destructive/20 hover:bg-destructive/30 rounded text-destructive text-[11px] font-bold transition-all disabled:opacity-50"
+                >
+                  {isResending ? "Sending..." : "✉️ Kirim Ulang Email Verifikasi"}
+                </button>
+                {resendStatus && (
+                  <p className="mt-1.5 text-[10px] font-medium text-foreground">{resendStatus}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -113,10 +161,10 @@ function LoginForm() {
         <form className="mt-4 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-3">
 
-            {/* Email Field */}
+            {/* Email or Username Field */}
             <div>
               <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                {t.auth_login.email_label}
+                Email atau Username
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -124,9 +172,9 @@ function LoginForm() {
                 </div>
                 <input
                   id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  autoComplete="email"
+                  type="text"
+                  placeholder="Email atau username Anda"
+                  autoComplete="username"
                   className={`w-full rounded-lg border bg-background py-2 pl-9 pr-3 text-xs text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
                     errors.email ? "border-destructive" : "border-border"
                   }`}

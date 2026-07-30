@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -25,6 +26,7 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -33,22 +35,22 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterInput) => {
     setError(null);
+    setSuccessMsg(null);
     setIsSubmitting(true);
 
     try {
       const res = await registerAction(data);
       if (res?.error) {
         setError(res.error);
-        setIsSubmitting(false);
-      } else {
-        router.push("/");
-        router.refresh();
+      } else if (res?.success && res?.message) {
+        setSuccessMsg(res.message);
       }
     } catch (err: any) {
       if (err.message !== "NEXT_REDIRECT") {
         setError(t.auth_register.err_system);
-        setIsSubmitting(false);
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -71,6 +73,22 @@ export default function RegisterPage() {
           <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 p-2.5 text-xs text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {/* Global Success Banner */}
+        {successMsg && (
+          <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-xs text-emerald-600 dark:text-emerald-400 space-y-1.5">
+            <p className="font-bold flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300">
+              ✓ Registrasi Berhasil!
+            </p>
+            <p>{successMsg}</p>
+            <Link
+              href="/login"
+              className="inline-block mt-1.5 text-xs font-bold underline hover:text-emerald-800"
+            >
+              Lanjut ke Halaman Login →
+            </Link>
           </div>
         )}
 
@@ -99,6 +117,30 @@ export default function RegisterPage() {
               </div>
               {errors.name && (
                 <p className="mt-0.5 text-[10px] text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+
+            {/* Username Field */}
+            <div>
+              <label htmlFor="username" className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                Username
+              </label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <input
+                  id="username"
+                  type="text"
+                  placeholder="artisan_nusantara"
+                  className={`w-full rounded-lg border bg-background py-1.5 pl-9 pr-3 text-xs text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
+                    errors.username ? "border-destructive" : "border-border"
+                  }`}
+                  {...registerField("username")}
+                />
+              </div>
+              {errors.username && (
+                <p className="mt-0.5 text-[10px] text-destructive">{errors.username.message}</p>
               )}
             </div>
 

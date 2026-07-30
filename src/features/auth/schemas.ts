@@ -1,13 +1,18 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z.string().email("Format email tidak valid"),
+  email: z.string().min(3, "Email atau Username minimal 3 karakter"),
   password: z.string().min(6, "Password minimal 6 karakter"),
 });
 
 export const registerSchema = z
   .object({
     name: z.string().min(2, "Nama minimal 2 karakter"),
+    username: z
+      .string()
+      .min(3, "Username minimal 3 karakter")
+      .max(20, "Username maksimal 20 karakter")
+      .regex(/^[a-zA-Z0-9_]+$/, "Username hanya boleh berupa huruf, angka, dan underscore (_)"),
     email: z.string().email("Format email tidak valid"),
     password: z.string().min(6, "Password minimal 6 karakter"),
     confirmPassword: z.string().min(6, "Konfirmasi password minimal 6 karakter"),

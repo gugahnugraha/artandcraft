@@ -12,15 +12,25 @@ export async function register(data: RegisterInput) {
     return { error: "Data registrasi tidak valid" };
   }
 
-  const { name, email, password } = parsed.data;
+  const { name, username, email, password } = parsed.data;
+  const cleanEmail = email.toLowerCase().trim();
+  const cleanUsername = username.toLowerCase().trim();
 
   try {
-    const existingUser = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+    const existingEmail = await prisma.user.findUnique({
+      where: { email: cleanEmail },
     });
 
-    if (existingUser) {
+    if (existingEmail) {
       return { error: "Email sudah terdaftar" };
+    }
+
+    const existingUsername = await prisma.user.findUnique({
+      where: { username: cleanUsername },
+    });
+
+    if (existingUsername) {
+      return { error: "Username sudah digunakan. Silakan pilih username lain." };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -28,9 +38,11 @@ export async function register(data: RegisterInput) {
     const user = await prisma.user.create({
       data: {
         name,
-        email: email.toLowerCase(),
+        username: cleanUsername,
+        email: cleanEmail,
         password: hashedPassword,
         role: "BUYER",
+        emailVerified: null,
       },
     });
 
@@ -43,23 +55,13 @@ export async function register(data: RegisterInput) {
     } catch (mailErr) {
       console.error("Failed to send verification email on registration:", mailErr);
     }
+
+    return {
+      success: true,
+      message: `Registrasi berhasil! Kami telah mengirimkan email verifikasi ke ${cleanEmail}. Silakan periksa inbox/spam email Anda untuk memverifikasi akun sebelum masuk.`,
+    };
   } catch (error) {
     console.error("Registration database error:", error);
-    return { error: "Terjadi kesalahan saat menyimpan data ke database" };
-  }
-
-  // Trigger login outside the database try-catch to allow Auth.js redirects to propagate
-  try {
-    await signIn("credentials", {
-      email: email.toLowerCase(),
-      password,
-      redirectTo: "/",
-    });
-    return { success: true };
-  } catch (error) {
-    if (error instanceof AuthError) {
-      return { error: "Registrasi berhasil, tetapi gagal masuk otomatis. Silakan masuk secara manual." };
-    }
-    throw error;
+    return { error: "Terjadi kesalahan saat menyimpan data pendaftaran ke database" };
   }
 }

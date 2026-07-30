@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 const smtpHost = process.env.SMTP_HOST;
 const smtpPort = parseInt(process.env.SMTP_PORT || "587");
 const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASSWORD;
+const smtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_KEY;
 const smtpFrom = process.env.SMTP_FROM || "no-reply@artandcraft.id";
 const appUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
