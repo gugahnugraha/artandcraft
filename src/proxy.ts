@@ -7,6 +7,6 @@ const { auth } = NextAuth(authConfig);
 export const proxy: any = auth;
 
 export const config = {
-  // Protect specific directories and handle authentication redirects
-  matcher: ["/login", "/register", "/admin/:path*", "/seller/:path*", "/profile/:path*"],
+  // Protect routes and handle forced setup-account redirects on all page navigations
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
