@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 interface RouteParams {
   params: Promise<{ conversationId: string }>;
@@ -66,6 +67,15 @@ export async function GET(req: Request, { params }: RouteParams) {
 // POST /api/messages/[conversationId] - Send message
 export async function POST(req: Request, { params }: RouteParams) {
   try {
+    const ip = getClientIp(req);
+    const limiter = rateLimit(`send_msg:${ip}`, { limit: 30, windowSec: 60 });
+    if (!limiter.success) {
+      return NextResponse.json(
+        { error: "Terlalu banyak mengirim pesan. Silakan pelankan ritme Anda." },
+        { status: 429 }
+      );
+    }
+
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -33,6 +33,11 @@ export async function GET() {
       bankName: sellerProfile.bankName,
       bankAccountNumber: sellerProfile.bankAccountNumber,
       bankAccountHolder: sellerProfile.bankAccountHolder,
+      isVerified: sellerProfile.isVerified,
+      kycStatus: sellerProfile.kycStatus,
+      ktpNumber: sellerProfile.ktpNumber,
+      ktpImage: sellerProfile.ktpImage,
+      kycNotes: sellerProfile.kycNotes,
       transactions: sellerProfile.walletTransactions.map(tx => ({
         ...tx,
         amount: Number(tx.amount)

@@ -28,6 +28,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Silakan atur rekening bank tujuan Anda terlebih dahulu." }, { status: 400 });
     }
 
+    // ─── SECURITY & LEGAL: Check Seller KYC Verification Status ────────────
+    if (!sellerProfile.isVerified && sellerProfile.kycStatus !== "VERIFIED") {
+      return NextResponse.json(
+        {
+          error:
+            "Verifikasi Identitas (KYC KTP) diperlukan sebelum mencairkan dana. Silakan unggah dokumen KTP Anda.",
+        },
+        { status: 403 }
+      );
+    }
+
     const currentBalance = Number(sellerProfile.balance);
     if (currentBalance < amount) {
       return NextResponse.json({ error: "Saldo toko Anda tidak mencukupi." }, { status: 400 });

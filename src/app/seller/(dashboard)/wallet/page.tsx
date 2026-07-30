@@ -18,7 +18,11 @@ export default function SellerWalletPage() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [isSubmittingWithdraw, setIsSubmittingWithdraw] = useState(false);
   const [withdrawMsg, setWithdrawMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
-  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
+  // KYC state
+  const [ktpNumber, setKtpNumber] = useState("");
+  const [ktpImage, setKtpImage] = useState("");
+  const [isSubmittingKyc, setIsSubmittingKyc] = useState(false);
+  const [kycMsg, setKycMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   const fetchWalletData = async () => {
     setIsLoading(true);
@@ -30,6 +34,8 @@ export default function SellerWalletPage() {
         setBankName(result.bankName || "");
         setBankAccountNumber(result.bankAccountNumber || "");
         setBankAccountHolder(result.bankAccountHolder || "");
+        setKtpNumber(result.ktpNumber || "");
+        setKtpImage(result.ktpImage || "");
       }
     } catch (err) {
       console.error(err);
@@ -87,8 +93,27 @@ export default function SellerWalletPage() {
       }
     } catch {
       setWithdrawMsg({ text: "Terjadi kesalahan jaringan.", type: "error" });
+  const handleKycSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingKyc(true);
+    setKycMsg(null);
+    try {
+      const res = await fetch("/api/seller/kyc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ktpNumber, ktpImage }),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setKycMsg({ text: "Dokumen KTP berhasil dikirim! Menunggu verifikasi admin.", type: "success" });
+        fetchWalletData();
+      } else {
+        setKycMsg({ text: result.error || "Gagal mengajukan verifikasi.", type: "error" });
+      }
+    } catch {
+      setKycMsg({ text: "Terjadi kesalahan koneksi.", type: "error" });
     } finally {
-      setIsSubmittingWithdraw(false);
+      setIsSubmittingKyc(false);
     }
   };
 
@@ -228,6 +253,88 @@ export default function SellerWalletPage() {
               </button>
             </div>
           </form>
+
+          {/* KYC Verification Card */}
+          <div className="mt-8 pt-6 border-t border-border space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-primary" /> Verifikasi Identitas (KYC KTP)
+              </h3>
+              <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
+                data?.isVerified || data?.kycStatus === "VERIFIED"
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  : data?.kycStatus === "PENDING"
+                  ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                  : data?.kycStatus === "REJECTED"
+                  ? "bg-destructive/10 text-destructive border border-destructive/20"
+                  : "bg-muted text-muted-foreground"
+              }`}>
+                {data?.isVerified || data?.kycStatus === "VERIFIED"
+                  ? "✓ TERVERIFIKASI"
+                  : data?.kycStatus === "PENDING"
+                  ? "⏳ MENUNGGU VERIFIKASI"
+                  : data?.kycStatus === "REJECTED"
+                  ? "✕ DITOLAK"
+                  : "BELUM DIVERIFIKASI"}
+              </span>
+            </div>
+
+            {kycMsg && (
+              <div className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${
+                kycMsg.type === "success" ? "bg-green-500/10 border-green-500/20 text-green-600" : "bg-destructive/10 border-destructive/20 text-destructive"
+              }`}>
+                {kycMsg.type === "success" ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
+                <span>{kycMsg.text}</span>
+              </div>
+            )}
+
+            {data?.kycNotes && data?.kycStatus === "REJECTED" && (
+              <p className="text-xs text-destructive bg-destructive/10 p-2.5 rounded-lg border border-destructive/20">
+                <strong>Alasan Penolakan Admin:</strong> {data.kycNotes}
+              </p>
+            )}
+
+            {!(data?.isVerified || data?.kycStatus === "VERIFIED") && (
+              <form onSubmit={handleKycSubmit} className="space-y-3 pt-1">
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Nomor KTP (16 Digit)</label>
+                  <input
+                    type="text"
+                    value={ktpNumber}
+                    onChange={(e) => setKtpNumber(e.target.value)}
+                    placeholder="Contoh: 3171012304950001"
+                    maxLength={16}
+                    required
+                    disabled={data?.kycStatus === "PENDING"}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-mono text-foreground focus:border-primary focus:outline-none disabled:opacity-60"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">URL / Link Foto KTP (Foto Jelas & Terbaca)</label>
+                  <input
+                    type="url"
+                    value={ktpImage}
+                    onChange={(e) => setKtpImage(e.target.value)}
+                    placeholder="https://domain.com/foto-ktp.jpg"
+                    required
+                    disabled={data?.kycStatus === "PENDING"}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none disabled:opacity-60"
+                  />
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={isSubmittingKyc || data?.kycStatus === "PENDING"}
+                    className="rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground px-4 py-2 text-xs font-bold transition-all disabled:opacity-50"
+                  >
+                    {isSubmittingKyc ? "Mengirim..." : data?.kycStatus === "PENDING" ? "Sedang Diverifikasi Admin" : "Kirim Dokumen KTP"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
 
       </div>

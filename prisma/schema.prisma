@@ -27,6 +27,7 @@ enum OrderStatus {
   PROCESSING
   SHIPPED
   DELIVERED
+  DISPUTED
   CANCELLED
   REFUNDED
 }
@@ -115,6 +116,10 @@ model SellerProfile {
   storeRating      Float     @default(0.0)
   followersCount   Int       @default(0)
   isVerified       Boolean   @default(false)
+  kycStatus        String    @default("UNSUBMITTED") // UNSUBMITTED, PENDING, VERIFIED, REJECTED
+  ktpNumber        String?
+  ktpImage         String?
+  kycNotes         String?
   balance          Decimal   @default(0.0) @db.Decimal(12, 2)
   bankName         String?
   bankAccountNumber String?
@@ -362,6 +367,9 @@ model Order {
   shippingCourier String?
   trackingNumber  String?
   notes           String?     // Buyer notes to seller
+  disputeReason   String?     // Reason for complaint / return request
+  disputeProof    String[]    @default([]) // URLs to proof photos
+  disputeNotes    String?     // Admin resolution notes
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 

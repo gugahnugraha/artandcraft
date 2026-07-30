@@ -17,6 +17,7 @@ import {
 import { cookies } from "next/headers";
 import { id as idDict } from "@/locales/id";
 import { en as enDict } from "@/locales/en";
+import OrderActionButtons from "@/components/orders/OrderActionButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -364,6 +365,9 @@ export default async function OrderDetailPage({ params }: Props) {
           <p className="text-sm text-muted-foreground italic">"{order.notes}"</p>
         </div>
       )}
+
+      {/* Buyer Order Action Buttons (Confirm Received / Dispute Complaint) */}
+      <OrderActionButtons orderId={order.id} status={order.status} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { generatePasswordResetToken } from "@/lib/tokens";
 import { sendPasswordResetEmail } from "@/lib/mail";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Format email tidak valid"),
@@ -10,6 +11,15 @@ const ForgotPasswordSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const limiter = rateLimit(`forgot_password:${ip}`, { limit: 5, windowSec: 300 });
+    if (!limiter.success) {
+      return NextResponse.json(
+        { message: "Terlalu banyak permintaan reset password. Silakan coba lagi beberapa menit kemudian." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const parsed = ForgotPasswordSchema.safeParse(body);
 

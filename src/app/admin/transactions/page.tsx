@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { id as idLocale, enUS } from "date-fns/locale";
-import { CreditCard, Search, Filter } from "lucide-react";
+import { CreditCard, Search, Filter, TrendingUp, DollarSign, Wallet } from "lucide-react";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { id as idDict } from "@/locales/id";
@@ -43,6 +43,11 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
     },
   });
 
+  // Calculate platform financial stats
+  const completedOrders = orders.filter((o) => o.status === "DELIVERED");
+  const totalVolume = completedOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+  const totalCommission = Math.round(totalVolume * 0.05); // 5% platform fee
+
   const cookieStore = await cookies();
   const lang = cookieStore.get("NEXT_LOCALE")?.value || "id";
   const t = lang === "en" ? en : idDict;
@@ -67,6 +72,39 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
         <p className="text-sm text-muted-foreground mt-1">
           {t.admin.trx_history_desc}
         </p>
+      </div>
+
+      {/* Financial Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-card border border-border/60 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-primary/10 text-primary rounded-xl">
+            <TrendingUp className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Volume Selesai</p>
+            <p className="text-xl font-black text-foreground mt-0.5">Rp {totalVolume.toLocaleString("id-ID")}</p>
+          </div>
+        </div>
+
+        <div className="bg-card border border-primary/30 bg-primary/5 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
+            <DollarSign className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Pendapatan Platform (5%)</p>
+            <p className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">Rp {totalCommission.toLocaleString("id-ID")}</p>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border/60 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl">
+            <Wallet className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Transaksi</p>
+            <p className="text-xl font-black text-foreground mt-0.5">{orders.length} Transaksi</p>
+          </div>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -125,6 +163,7 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
                   <th className="p-4">{t.admin.col_id}</th>
                   <th className="p-4">{t.admin.col_buyer}</th>
                   <th className="p-4">{t.admin.col_total}</th>
+                  <th className="p-4">Komisi Platform (5%)</th>
                   <th className="p-4">{t.admin.col_payment_status}</th>
                   <th className="p-4">{t.admin.col_trx_date}</th>
                 </tr>
@@ -136,13 +175,17 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
                     PAID: "bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-400",
                     PROCESSING: "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400",
                     SHIPPED: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-400",
+                    DELIVERED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400",
                     CANCELLED: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400",
                   };
+
+                  const isDelivered = order.status === "DELIVERED";
+                  const commission = isDelivered ? Math.round(Number(order.totalAmount) * 0.05) : 0;
 
                   return (
                     <tr key={order.id} className="border-b border-border/50 hover:bg-muted/10 last:border-0">
                       <td className="p-4 font-mono text-xs font-bold text-foreground">
-                        {order.id}
+                        #{order.id.slice(-8).toUpperCase()}
                       </td>
                       <td className="p-4">
                         <div className="font-semibold text-foreground">{order.user.name || "User"}</div>
@@ -150,6 +193,9 @@ export default async function AdminTransactionsPage({ searchParams }: Transactio
                       </td>
                       <td className="p-4 font-bold text-foreground">
                         Rp {Number(order.totalAmount).toLocaleString("id-ID")}
+                      </td>
+                      <td className="p-4 font-semibold text-emerald-600 dark:text-emerald-400">
+                        {isDelivered ? `Rp ${commission.toLocaleString("id-ID")}` : "-"}
                       </td>
                       <td className="p-4">
                         <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${statusColors[order.status] || "bg-neutral-100 text-neutral-800"}`}>

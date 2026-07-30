@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { calculateShippingRates } from "@/services/shipping/shipping";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 const midtransClient = require("midtrans-client");
 
 // Initialize Snap client
@@ -36,6 +37,15 @@ const checkoutSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const ip = getClientIp(req);
+    const limiter = rateLimit(`checkout:${ip}`, { limit: 10, windowSec: 60 });
+    if (!limiter.success) {
+      return NextResponse.json(
+        { error: "Terlalu banyak permintaan checkout. Silakan tunggu beberapa saat." },
+        { status: 429 }
+      );
+    }
+
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

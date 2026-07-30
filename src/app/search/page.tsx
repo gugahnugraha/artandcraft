@@ -108,10 +108,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     orderByClause = { price: "desc" };
   }
 
-  // 4. Fetch Products
+  // 4. Fetch Products (Limit to 60 items max for performance optimization)
   const products = await prisma.product.findMany({
     where: whereClause,
     orderBy: orderByClause,
+    take: 60,
     include: {
       category: { select: { name: true } },
       seller: { select: { storeName: true, storeRating: true } },

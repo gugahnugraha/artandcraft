@@ -171,13 +171,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-primary transition-colors">
+                <Link href="/kebijakan-pengembalian" className="hover:text-primary transition-colors">
                   {t.footer.return_policy}
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-primary transition-colors">
-                  {t.footer.contact}
+                <Link href="/syarat-ketentuan" className="hover:text-primary transition-colors">
+                  Syarat & Ketentuan
+                </Link>
+              </li>
+              <li>
+                <Link href="/kebijakan-privasi" className="hover:text-primary transition-colors">
+                  Kebijakan Privasi
                 </Link>
               </li>
             </ul>
