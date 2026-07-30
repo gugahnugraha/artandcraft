@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import {
+  sendOrderConfirmationEmail,
+  sendNewOrderNotificationEmail,
+} from "@/lib/mail";
 
 export async function POST(req: Request) {
   try {
@@ -164,6 +168,69 @@ export async function POST(req: Request) {
         }
       }
     });
+
+    // ─── Send Transactional Emails (after DB commit, non-blocking) ───────────
+    if (isTransitionToPaid) {
+      // Fetch buyer info for email
+      const buyer = await prisma.user.findUnique({
+        where: { id: order.userId },
+        select: { email: true, name: true },
+      });
+
+      if (buyer?.email) {
+        const emailItems = order.items.map((item) => ({
+          title: item.product?.title || `Produk #${item.productId.slice(-6)}`,
+          quantity: item.quantity,
+          price: Number(item.price),
+        }));
+
+        // Email ke buyer — non-blocking, jangan sampai gagal email hentikan response
+        sendOrderConfirmationEmail({
+          to: buyer.email,
+          buyerName: buyer.name || "Pembeli",
+          orderId: order.id,
+          grandTotal: Number(order.grandTotal),
+          items: emailItems,
+        }).catch((e) => console.error("[MAIL] Gagal kirim email konfirmasi ke buyer:", e));
+
+        // Email ke setiap seller
+        const sellersMap = new Map<string, { email: string; storeName: string; items: { title: string; quantity: number }[]; total: number }>();
+        for (const item of order.items) {
+          if (item.product?.seller) {
+            const s = item.product.seller;
+            const existing = sellersMap.get(s.id) || {
+              email: "",
+              storeName: s.storeName,
+              items: [],
+              total: 0,
+            };
+            // Fetch seller email if not already fetched
+            if (!existing.email) {
+              const sellerUser = await prisma.user.findUnique({
+                where: { id: s.userId },
+                select: { email: true },
+              });
+              existing.email = sellerUser?.email || "";
+            }
+            existing.items.push({ title: item.product.title, quantity: item.quantity });
+            existing.total += Number(item.price) * item.quantity;
+            sellersMap.set(s.id, existing);
+          }
+        }
+
+        for (const [, sellerData] of sellersMap) {
+          if (sellerData.email) {
+            sendNewOrderNotificationEmail({
+              to: sellerData.email,
+              storeName: sellerData.storeName,
+              orderId: order.id,
+              totalAmount: sellerData.total,
+              items: sellerData.items,
+            }).catch((e) => console.error("[MAIL] Gagal kirim email notif ke seller:", e));
+          }
+        }
+      }
+    }
 
     console.log(`[WEBHOOK SUCCESS] Order ${order_id} updated to status: ${newOrderStatus}`);
     return NextResponse.json({ success: true, status: newOrderStatus }, { status: 200 });

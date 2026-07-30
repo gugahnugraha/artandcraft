@@ -72,7 +72,7 @@ export const authConfig = {
       }
 
       if (isOnSeller) {
-        return isLoggedIn;
+        return isLoggedIn && (auth.user?.role === "SELLER" || auth.user?.role === "ADMIN");
       }
 
       return true;

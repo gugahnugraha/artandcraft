@@ -4,9 +4,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const ReviewSchema = z.object({
-  productId: z.string(),
+  productId: z.string().min(1),
   rating: z.number().int().min(1).max(5),
-  comment: z.string().optional(),
+  comment: z.string().max(2000).optional(),
   orderId: z.string().optional(),
 });
 
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = ReviewSchema.safeParse(body);
-    
+
     if (!parsed.success) {
       return NextResponse.json(
         { message: "Data tidak valid", errors: parsed.error.issues },
@@ -27,29 +27,50 @@ export async function POST(req: Request) {
 
     const { productId, rating, comment, orderId } = parsed.data;
 
-    // Optional: Validate that user has bought this product before they can review
-    // For now we just use the unique constraint [userId, productId]
-    // which allows 1 review per product per user.
+    // ─── SECURITY: Verified Purchase Check ───────────────────────────────────
+    // Pembeli hanya dapat mengulas produk yang sudah mereka beli DAN sudah
+    // berstatus DELIVERED (pesanan dikonfirmasi diterima).
+    const verifiedPurchase = await prisma.orderItem.findFirst({
+      where: {
+        productId,
+        order: {
+          userId: session.user.id,
+          status: "DELIVERED",
+        },
+      },
+      select: { id: true },
+    });
 
+    if (!verifiedPurchase) {
+      return NextResponse.json(
+        {
+          message:
+            "Anda hanya dapat mengulas produk yang sudah Anda beli dan terima. Pastikan pesanan sudah berstatus Diterima.",
+        },
+        { status: 403 }
+      );
+    }
+
+    // ─── Upsert Review (1 ulasan per produk per user) ─────────────────────────
     const review = await prisma.review.upsert({
       where: {
         userId_productId: {
           userId: session.user.id,
           productId,
-        }
+        },
       },
       create: {
         userId: session.user.id,
         productId,
         rating,
-        comment,
-        orderId,
+        comment: comment?.trim() || null,
+        orderId: orderId || null,
       },
       update: {
         rating,
-        comment,
-        orderId,
-      }
+        comment: comment?.trim() || null,
+        orderId: orderId || null,
+      },
     });
 
     return NextResponse.json({ success: true, review }, { status: 201 });
@@ -73,9 +94,9 @@ export async function GET(req: Request) {
       include: {
         user: {
           select: { name: true, image: true },
-        }
+        },
       },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
     });
 
     const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);

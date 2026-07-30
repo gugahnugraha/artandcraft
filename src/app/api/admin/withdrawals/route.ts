@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { sendWithdrawalStatusEmail } from "@/lib/mail";
 
 // GET /api/admin/withdrawals - Admin fetches all withdrawal requests
 export async function GET() {
@@ -111,6 +112,24 @@ export async function POST(req: Request) {
         });
       }
     });
+
+    // ─── Email notifikasi ke seller ────────────────────────────────────────
+    const sellerUser = await prisma.user.findUnique({
+      where: { id: withdrawal.sellerProfile.userId },
+      select: { email: true, name: true },
+    });
+
+    if (sellerUser?.email) {
+      sendWithdrawalStatusEmail({
+        to: sellerUser.email,
+        sellerName: sellerUser.name || withdrawal.sellerProfile.bankAccountHolder || "Penjual",
+        amount: Number(withdrawal.amount),
+        status: status as "APPROVED" | "REJECTED",
+        bankName: withdrawal.bankName,
+        accountNumber: withdrawal.bankAccountNumber,
+        notes: notes || undefined,
+      }).catch((e) => console.error("[MAIL] Gagal kirim email withdrawal:", e));
+    }
 
     return NextResponse.json({ success: true, status });
   } catch (error: any) {

@@ -7,8 +7,18 @@ interface RouteParams {
 }
 
 /**
+ * Platform Commission Rate
+ * 5% dari setiap transaksi yang berhasil masuk ke kas platform (admin).
+ * Seller menerima 95% dari total penjualan produk.
+ */
+const PLATFORM_COMMISSION_RATE = 0.05;
+
+/**
  * POST /api/orders/[id]/confirm
- * Buyer confirms they received the order — moves SHIPPED → DELIVERED and credits seller balance
+ * Buyer confirms they received the order.
+ * - Moves SHIPPED → DELIVERED
+ * - Credits seller balance (minus platform commission)
+ * - Records platform earnings in admin wallet
  */
 export async function POST(_req: Request, { params }: RouteParams) {
   const session = await auth();
@@ -23,10 +33,10 @@ export async function POST(_req: Request, { params }: RouteParams) {
     include: {
       items: {
         include: {
-          product: { select: { sellerId: true, title: true } }
-        }
-      }
-    }
+          product: { select: { sellerId: true, title: true } },
+        },
+      },
+    },
   });
 
   if (!order) {
@@ -44,17 +54,35 @@ export async function POST(_req: Request, { params }: RouteParams) {
     );
   }
 
-  // Calculate earnings per seller
-  const sellerEarnings = new Map<string, number>();
+  // ─── Calculate earnings per seller with platform commission ───────────────
+  // Map: sellerId → { gross, commission, net }
+  const sellerEarnings = new Map<string, { gross: number; commission: number; net: number }>();
 
-  order.items.forEach(item => {
+  order.items.forEach((item) => {
     const sellerId = item.product.sellerId;
     const itemTotal = Number(item.price) * item.quantity;
-    sellerEarnings.set(sellerId, (sellerEarnings.get(sellerId) || 0) + itemTotal);
+    const commission = Math.round(itemTotal * PLATFORM_COMMISSION_RATE);
+    const net = itemTotal - commission;
+
+    const existing = sellerEarnings.get(sellerId);
+    if (existing) {
+      sellerEarnings.set(sellerId, {
+        gross: existing.gross + itemTotal,
+        commission: existing.commission + commission,
+        net: existing.net + net,
+      });
+    } else {
+      sellerEarnings.set(sellerId, { gross: itemTotal, commission, net });
+    }
   });
 
+  const totalCommission = Array.from(sellerEarnings.values()).reduce(
+    (sum, e) => sum + e.commission,
+    0
+  );
+
   await prisma.$transaction(async (tx) => {
-    // 1. Update Order Status
+    // 1. Update Order Status → DELIVERED
     await tx.order.update({
       where: { id },
       data: { status: "DELIVERED" },
@@ -79,29 +107,30 @@ export async function POST(_req: Request, { params }: RouteParams) {
       },
     });
 
-    // 4. Credit Seller Balances
-    for (const [sellerId, amount] of sellerEarnings.entries()) {
+    // 4. Credit Seller Balances (net amount after commission)
+    for (const [sellerId, earnings] of sellerEarnings.entries()) {
+      // Credit net amount to seller wallet
       await tx.sellerProfile.update({
         where: { id: sellerId },
         data: {
-          balance: { increment: amount }
-        }
+          balance: { increment: earnings.net },
+        },
       });
 
       await tx.walletTransaction.create({
         data: {
           sellerProfileId: sellerId,
           type: "CREDIT",
-          amount,
-          description: `Hasil penjualan pesanan #${id.slice(-8).toUpperCase()}`,
+          amount: earnings.net,
+          description: `Hasil penjualan pesanan #${id.slice(-8).toUpperCase()} (setelah komisi platform 5%)`,
           referenceId: id,
-        }
+        },
       });
 
-      // Get seller userId for notification
+      // Seller notification with breakdown
       const sellerProfile = await tx.sellerProfile.findUnique({
         where: { id: sellerId },
-        select: { userId: true, storeName: true }
+        select: { userId: true, storeName: true },
       });
 
       if (sellerProfile) {
@@ -109,10 +138,46 @@ export async function POST(_req: Request, { params }: RouteParams) {
           data: {
             userId: sellerProfile.userId,
             title: "Saldo Toko Bertambah! 💰",
-            message: `Dana sebesar Rp ${amount.toLocaleString("id-ID")} dari pesanan #${id.slice(-8).toUpperCase()} telah diteruskan ke saldo toko Anda.`,
+            message:
+              `Dana Rp ${earnings.net.toLocaleString("id-ID")} dari pesanan ` +
+              `#${id.slice(-8).toUpperCase()} telah masuk ke saldo toko Anda ` +
+              `(komisi platform: Rp ${earnings.commission.toLocaleString("id-ID")}).`,
             link: `/seller/wallet`,
-          }
+          },
         });
+      }
+    }
+
+    // 5. Record Platform Commission — diarahkan ke profil seller milik admin
+    // Simpan sebagai platform_earning ke satu seller_profile milik akun admin
+    // agar dapat dilacak di dashboard admin.
+    if (totalCommission > 0) {
+      const adminUser = await tx.user.findFirst({
+        where: { role: "ADMIN" },
+        select: { id: true },
+      });
+
+      if (adminUser) {
+        const adminSellerProfile = await tx.sellerProfile.findUnique({
+          where: { userId: adminUser.id },
+        });
+
+        if (adminSellerProfile) {
+          await tx.sellerProfile.update({
+            where: { id: adminSellerProfile.id },
+            data: { balance: { increment: totalCommission } },
+          });
+
+          await tx.walletTransaction.create({
+            data: {
+              sellerProfileId: adminSellerProfile.id,
+              type: "CREDIT",
+              amount: totalCommission,
+              description: `Komisi platform (5%) dari pesanan #${id.slice(-8).toUpperCase()}`,
+              referenceId: id,
+            },
+          });
+        }
       }
     }
   });

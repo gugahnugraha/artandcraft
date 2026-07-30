@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { sendShippingNotificationEmail } from "@/lib/mail";
+
+const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
+  PAID: ["PROCESSING"],
+  PROCESSING: ["SHIPPED"],
+  SHIPPED: ["SHIPPED"], // Allow updating tracking number
+};
 
 export async function PATCH(req: Request, props: { params: Promise<{ orderId: string }> }) {
   const params = await props.params;
@@ -18,7 +25,51 @@ export async function PATCH(req: Request, props: { params: Promise<{ orderId: st
       return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
     }
 
-    // Build update data — include tracking fields if provided
+    // ─── SECURITY: Validate order ownership ────────────────────────────────────
+    // Find the order and verify that it contains at least one product
+    // belonging to the seller currently logged in.
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { seller: { select: { userId: true } } },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return NextResponse.json({ error: "Order tidak ditemukan." }, { status: 404 });
+    }
+
+    // ADMIN can update any order; SELLER can only update orders containing their products
+    if (session.user.role === "SELLER") {
+      const sellerOwnsThisOrder = order.items.some(
+        (item) => item.product?.seller?.userId === session.user.id
+      );
+
+      if (!sellerOwnsThisOrder) {
+        console.warn(
+          `[SECURITY] Seller ${session.user.id} attempted to update order ${orderId} that does not belong to them.`
+        );
+        return NextResponse.json({ error: "Forbidden: Order ini bukan milik toko Anda." }, { status: 403 });
+      }
+    }
+
+    // ─── Validate state machine transition ─────────────────────────────────────
+    const currentStatus = order.status;
+    const allowedNext = ALLOWED_STATUS_TRANSITIONS[currentStatus] || [];
+    if (!allowedNext.includes(status) && session.user.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: `Tidak dapat mengubah status dari ${currentStatus} menjadi ${status}.` },
+        { status: 400 }
+      );
+    }
+
+    // ─── Build update data ─────────────────────────────────────────────────────
     const updateData: Record<string, unknown> = { status };
     if (trackingNumber !== undefined) updateData.trackingNumber = trackingNumber || null;
     if (shippingCourier !== undefined) updateData.shippingCourier = shippingCourier || null;
@@ -28,7 +79,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ orderId: st
       data: updateData,
     });
 
-    // Create tracking log entry for key transitions
+    // ─── Tracking log for key transitions ─────────────────────────────────────
     const trackingDescriptions: Record<string, string> = {
       PROCESSING: "Pesanan sedang dikemas oleh penjual.",
       SHIPPED: trackingNumber
@@ -46,7 +97,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ orderId: st
       });
     }
 
-    // Notify the buyer on key status transitions
+    // ─── Buyer Notification ────────────────────────────────────────────────────
     const notifMap: Record<string, { title: string; message: string }> = {
       PROCESSING: {
         title: "Pesanan Diproses 📦",
@@ -69,6 +120,24 @@ export async function PATCH(req: Request, props: { params: Promise<{ orderId: st
           link: `/dashboard/orders/${orderId}`,
         },
       });
+    }
+
+    // ─── Email ke buyer saat pesanan SHIPPED ──────────────────────────────────
+    if (status === "SHIPPED") {
+      const buyer = await prisma.user.findUnique({
+        where: { id: updatedOrder.userId },
+        select: { email: true, name: true },
+      });
+
+      if (buyer?.email) {
+        sendShippingNotificationEmail({
+          to: buyer.email,
+          buyerName: buyer.name || "Pembeli",
+          orderId,
+          courier: shippingCourier || updatedOrder.shippingCourier || "Kurir",
+          trackingNumber: trackingNumber || updatedOrder.trackingNumber || undefined,
+        }).catch((e) => console.error("[MAIL] Gagal kirim email shipping:", e));
+      }
     }
 
     return NextResponse.json({ success: true, order: updatedOrder });

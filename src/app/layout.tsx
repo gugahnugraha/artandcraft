@@ -56,7 +56,7 @@ export const metadata: Metadata = {
       "Pasar online kerajinan tangan terbaik buatan pengrajin lokal Indonesia. Batik, ukiran kayu, keramik, perhiasan etnik, dan produk kreatif nusantara.",
     images: [
       {
-        url: `${baseUrl}/og-image.jpg`,
+        url: `${baseUrl}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "ArtAndCraft.id — Marketplace Kerajinan Tangan Nusantara",
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     title: "ArtAndCraft.id — Indonesian Handmade & Local Artisans",
     description:
       "Pasar online kerajinan tangan terbaik buatan pengrajin lokal Indonesia.",
-    images: [`${baseUrl}/og-image.jpg`],
+    images: [`${baseUrl}/og-image.png`],
   },
   alternates: {
     canonical: baseUrl,
