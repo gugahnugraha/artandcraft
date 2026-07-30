@@ -18,6 +18,7 @@ export default function SellerWalletPage() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [isSubmittingWithdraw, setIsSubmittingWithdraw] = useState(false);
   const [withdrawMsg, setWithdrawMsg] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   // KYC state
   const [ktpNumber, setKtpNumber] = useState("");
   const [ktpImage, setKtpImage] = useState("");
@@ -93,6 +94,11 @@ export default function SellerWalletPage() {
       }
     } catch {
       setWithdrawMsg({ text: "Terjadi kesalahan jaringan.", type: "error" });
+    } finally {
+      setIsSubmittingWithdraw(false);
+    }
+  };
+
   const handleKycSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingKyc(true);
