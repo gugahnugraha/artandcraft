@@ -141,21 +141,28 @@ export default function ProductCard(props: ProductCardProps) {
           </div>
         )}
 
-        {/* Quick View Overlay */}
-        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10 backdrop-blur-[2px]">
-          <span className="px-4 py-2 bg-white/90 backdrop-blur-sm text-foreground text-xs font-bold rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-lg border border-white/40">
-            {t.product.quick_view}
+        {/* Handmade Tag Ribbon */}
+        <div className="absolute top-2 left-2 z-10 pointer-events-none">
+          <span className="px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase bg-card/90 backdrop-blur-md text-foreground rounded-md border border-border shadow-sm">
+            {t.card.handcrafted}
           </span>
         </div>
 
-        {/* Wishlist Button (Always visible on hover, or always visible) */}
+        {/* Quick View Overlay */}
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10 backdrop-blur-[2px]">
+          <span className="px-4 py-2 bg-white/90 backdrop-blur-sm text-foreground text-xs font-bold rounded-full transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-lg border border-white/40">
+            {t.card.quick_view}
+          </span>
+        </div>
+
+        {/* Wishlist Button (Always visible on mobile, hover on desktop) */}
         <button
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             setIsWishlisted(!isWishlisted);
           }}
-          className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shadow-sm hover:scale-110 active:scale-95 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+          className="absolute top-2 right-2 h-8 w-8 rounded-full bg-card/90 backdrop-blur-md flex items-center justify-center text-muted-foreground hover:text-foreground transition-all shadow-sm hover:scale-110 active:scale-95 z-20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 border border-border"
           aria-label="Add to Wishlist"
         >
           <Heart
@@ -169,38 +176,37 @@ export default function ProductCard(props: ProductCardProps) {
       {/* Info container */}
       <div className="flex flex-col flex-1">
         {/* Title */}
-        <h3 className="font-medium text-foreground text-sm leading-snug line-clamp-1 group-hover:underline decoration-foreground/30 underline-offset-4">
+        <h3 className="font-semibold text-foreground text-xs sm:text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
           {title}
         </h3>
         
         {/* Seller & Rating */}
-        <div className="flex items-center gap-1.5 mt-1">
-          <span className="text-xs text-muted-foreground">{sellerName}</span>
+        <div className="flex items-center gap-1.5 mt-1.5">
+          <span className="text-[11px] text-muted-foreground truncate">{sellerName || t.card.artisan_fallback}</span>
           {rating > 0 && (
-            <div className="flex items-center gap-0.5 ml-auto">
-              <span className="text-xs font-semibold text-foreground">{rating.toFixed(1)}</span>
-              <Star className="h-3 w-3 fill-foreground text-foreground" />
-              <span className="text-[10px] text-muted-foreground ml-0.5">({reviewsCount})</span>
+            <div className="flex items-center gap-0.5 ml-auto shrink-0">
+              <span className="text-[11px] font-bold text-amber-500">{rating.toFixed(1)}</span>
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
             </div>
           )}
         </div>
 
         {/* Pricing */}
-        <div className="mt-1 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-1.5 flex-wrap">
           {hasDiscount ? (
             <>
-              <span className="font-bold text-primary text-sm">
+              <span className="font-extrabold text-primary text-sm sm:text-base">
                 Rp {finalPrice.toLocaleString("id-ID")}
               </span>
-              <span className="text-xs text-muted-foreground line-through decoration-muted-foreground/50">
+              <span className="text-[10px] text-muted-foreground line-through">
                 Rp {price.toLocaleString("id-ID")}
               </span>
-              <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+              <span className="text-[9px] font-bold text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">
                 -{discount}%
               </span>
             </>
           ) : (
-            <span className="font-bold text-foreground text-sm">
+            <span className="font-extrabold text-foreground text-sm sm:text-base">
               Rp {price.toLocaleString("id-ID")}
             </span>
           )}

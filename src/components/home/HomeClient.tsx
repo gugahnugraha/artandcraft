@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Sparkles, ShieldCheck, Truck, HeartHandshake, Award } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
@@ -335,6 +335,57 @@ export default function HomeClient({
           <span className="text-[10px] font-mono font-semibold text-foreground ml-1">
             {currentSlide + 1}/{heroSlides.length}
           </span>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════════════
+          TRUST VALUE PROPOSITION BAR
+          ════════════════════════════════════════════════════════ */}
+      <section className="py-6 bg-card border-y border-border/60 shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/20 border border-border/40">
+              <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
+                <Award className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-xs sm:text-sm text-foreground">{t.trust.handcrafted_title}</h4>
+                <p className="text-[11px] text-muted-foreground line-clamp-1">{t.trust.handcrafted_desc}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/20 border border-border/40">
+              <div className="p-2.5 bg-emerald-500/10 text-emerald-600 rounded-xl shrink-0">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-xs sm:text-sm text-foreground">{t.trust.escrow_title}</h4>
+                <p className="text-[11px] text-muted-foreground line-clamp-1">{t.trust.escrow_desc}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/20 border border-border/40">
+              <div className="p-2.5 bg-amber-500/10 text-amber-600 rounded-xl shrink-0">
+                <Truck className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-xs sm:text-sm text-foreground">{t.trust.shipping_title}</h4>
+                <p className="text-[11px] text-muted-foreground line-clamp-1">{t.trust.shipping_desc}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/20 border border-border/40">
+              <div className="p-2.5 bg-purple-500/10 text-purple-600 rounded-xl shrink-0">
+                <HeartHandshake className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-xs sm:text-sm text-foreground">{t.trust.umkm_title}</h4>
+                <p className="text-[11px] text-muted-foreground line-clamp-1">{t.trust.umkm_desc}</p>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 

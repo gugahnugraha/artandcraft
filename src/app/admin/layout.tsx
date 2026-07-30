@@ -11,6 +11,9 @@ import {
   ChevronRight,
   ShieldCheck,
   Wallet,
+  ShieldAlert,
+  FileCheck,
+  Package,
 } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -21,6 +24,9 @@ export const metadata: Metadata = {
 const adminLinks = [
   { href: "/admin", label: "Ringkasan", icon: LayoutDashboard },
   { href: "/admin/users", label: "Manajemen Pengguna", icon: Users },
+  { href: "/admin/kyc", label: "Verifikasi KYC Toko", icon: FileCheck },
+  { href: "/admin/disputes", label: "Resolusi Sengketa", icon: ShieldAlert },
+  { href: "/admin/products", label: "Moderasi Katalog", icon: Package },
   { href: "/admin/transactions", label: "Transaksi", icon: CreditCard },
   { href: "/admin/withdrawals", label: "Penarikan Saldo", icon: Wallet },
   { href: "/admin/settings", label: "Kustomisasi UI", icon: Settings },

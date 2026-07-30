@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Truck, CheckCircle2 } from "lucide-react";
+import { Loader2, Truck, CheckCircle2, Printer } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Link from "next/link";
 
 interface OrderStatusUpdaterProps {
   orderId: string;
@@ -147,6 +148,15 @@ export default function OrderStatusUpdater({
           <Truck className="h-4 w-4" />
           {t.seller_orders.btn_mark_shipped}
         </button>
+
+        <Link
+          href={`/seller/orders/${orderId}/shipping-label`}
+          target="_blank"
+          className="w-full flex items-center justify-center gap-2 rounded-lg border border-border bg-background py-1.5 text-xs font-bold text-foreground hover:bg-muted transition-colors shadow-sm"
+        >
+          <Printer className="h-3.5 w-3.5 text-primary" />
+          Cetak Label Resi (A6)
+        </Link>
       </div>
     );
   }

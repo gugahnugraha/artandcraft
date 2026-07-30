@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/layouts/Header";
 import Footer from "@/components/layouts/Footer";
+import MobileBottomNav from "@/components/layouts/MobileBottomNav";
 import AuthProvider from "@/components/providers/SessionProvider";
 import CartSyncProvider from "@/components/providers/CartSyncProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -121,8 +122,9 @@ export default async function RootLayout({
           <AuthProvider session={session}>
             <CartSyncProvider>
               <Header />
-              <main className="flex-1 flex flex-col">{children}</main>
+              <main className="flex-1 flex flex-col pb-16 md:pb-0">{children}</main>
               <Footer />
+              <MobileBottomNav />
             </CartSyncProvider>
           </AuthProvider>
         </LanguageProvider>

@@ -98,20 +98,20 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
           mobileFilterOpen ? "block" : "hidden lg:block"
         }`}
       >
-        <div className="flex items-center justify-between pb-4 border-b border-border/50">
-          <h3 className="font-serif font-bold text-lg text-foreground flex items-center gap-2.5">
+        <div className="flex items-center justify-between pb-4 border-b border-border/60">
+          <h3 className="font-bold text-base text-foreground flex items-center gap-2">
             <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
               <Filter className="h-4 w-4" />
             </div>
-            {t.search.title}
+            <span>Filter</span>
           </h3>
-          {(currentCategory || currentMinPrice || currentMaxPrice || currentQuery || currentSort !== "newest") && (
+          {(currentCategory || currentSubcategory || currentMinPrice || currentMaxPrice || currentQuery || currentSort !== "newest") && (
             <button
               onClick={handleReset}
-              className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1.5 transition-colors font-medium bg-secondary/50 px-2.5 py-1 rounded-full hover:bg-destructive/10"
+              className="text-xs text-destructive hover:text-destructive/80 flex items-center gap-1 transition-all font-semibold hover:underline"
             >
               <RotateCcw className="h-3 w-3" />
-              {t.search.reset_filter}
+              <span>Reset Filter</span>
             </button>
           )}
         </div>
