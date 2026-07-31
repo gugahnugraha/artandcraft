@@ -5,7 +5,9 @@ import { S3StorageProvider } from "./s3-storage";
 let storage: StorageProvider;
 
 // Selected via environment variable, e.g. "s3" or "local"
-const activeProvider = process.env.STORAGE_PROVIDER || "local";
+// Default to 'r2' if R2_ACCOUNT_ID is present to prevent crashes on Vercel (read-only FS)
+const defaultProvider = process.env.R2_ACCOUNT_ID ? "r2" : "local";
+const activeProvider = process.env.STORAGE_PROVIDER || defaultProvider;
 
 if (activeProvider === "s3" || activeProvider === "r2") {
   try {

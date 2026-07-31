@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Wallet, ArrowUpRight, ArrowDownLeft, Building2, CreditCard, User, CheckCircle2, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import ImageDropzone from "@/components/ui/ImageDropzone";
 
 export default function SellerWalletPage() {
   const [data, setData] = useState<any>(null);
@@ -317,16 +318,14 @@ export default function SellerWalletPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1">URL / Link Foto KTP (Foto Jelas & Terbaca)</label>
-                  <input
-                    type="url"
-                    value={ktpImage}
-                    onChange={(e) => setKtpImage(e.target.value)}
-                    placeholder="https://domain.com/foto-ktp.jpg"
-                    required
-                    disabled={data?.kycStatus === "PENDING"}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none disabled:opacity-60"
-                  />
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Foto KTP (Jelas & Terbaca)</label>
+                  <div className={data?.kycStatus === "PENDING" ? "opacity-60 pointer-events-none" : ""}>
+                    <ImageDropzone
+                      value={ktpImage}
+                      onChange={(url) => setKtpImage(url)}
+                      folder="kyc"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-end pt-1">

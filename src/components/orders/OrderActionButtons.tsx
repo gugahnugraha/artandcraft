@@ -5,6 +5,7 @@ import { CheckCircle2, AlertTriangle, X, Loader2, Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ImageDropzone from "@/components/ui/ImageDropzone";
 
 interface OrderActionButtonsProps {
   orderId: string;
@@ -157,12 +158,10 @@ export default function OrderActionButtons({ orderId, status }: OrderActionButto
                 <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">
                   {t.order_actions.dispute_evidence_label}
                 </label>
-                <input
-                  type="url"
+                <ImageDropzone
                   value={disputeProof}
-                  onChange={(e) => setDisputeProof(e.target.value)}
-                  placeholder={t.order_actions.dispute_evidence_placeholder}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs text-foreground focus:border-primary focus:outline-none"
+                  onChange={(url) => setDisputeProof(url)}
+                  folder="disputes"
                 />
               </div>
 
