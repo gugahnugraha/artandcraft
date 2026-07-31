@@ -42,6 +42,7 @@ export const authConfig = {
       const isOnSetupAccount = pathname.startsWith("/setup-account");
       const isOnAuth = pathname.startsWith("/login") || pathname.startsWith("/register");
       const isOnApi = pathname.startsWith("/api");
+      const isOnSellerSetup = pathname.startsWith("/seller/setup");
       const isOnSeller = pathname.startsWith("/seller");
       const isOnAdmin = pathname.startsWith("/admin");
 
@@ -69,6 +70,10 @@ export const authConfig = {
 
       if (isOnAdmin) {
         return isLoggedIn && auth.user?.role === "ADMIN";
+      }
+
+      if (isOnSellerSetup) {
+        return isLoggedIn;
       }
 
       if (isOnSeller) {

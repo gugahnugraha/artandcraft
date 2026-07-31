@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import { id } from "@/locales/id";
 import { en } from "@/locales/en";
 import Link from "next/link";
+import { translateCategory } from "@/lib/translateCategory";
 
 export const dynamic = "force-dynamic";
 
@@ -93,8 +94,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       )
     : undefined;
 
-  const displayCatLabel = categoryClean ? (activeCategoryObj?.name || formatCapitalize(categoryClean)) : "";
-  const displaySubLabel = subcategoryClean ? (activeSubcategoryObj?.name || formatCapitalize(subcategoryClean)) : "";
+  const displayCatLabel = categoryClean ? translateCategory(activeCategoryObj?.name || formatCapitalize(categoryClean), lang) : "";
+  const displaySubLabel = subcategoryClean ? translateCategory(activeSubcategoryObj?.name || formatCapitalize(subcategoryClean), lang) : "";
 
   // 2. Build Intelligent Multi-Layer Search Clause
   const baseWhere: any = {
@@ -285,7 +286,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             {/* Active Filter Badges Breadcrumb */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="inline-flex items-center gap-1 font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                <Sparkles className="h-3.5 w-3.5" /> Eksplorasi Kerajinan
+                <Sparkles className="h-3.5 w-3.5" /> {t.search.header_explore}
               </span>
               {displayCatLabel && (
                 <span className="inline-flex items-center gap-1 text-foreground bg-card/80 px-2.5 py-1 rounded-full border border-border font-medium">
@@ -303,27 +304,27 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <h1 className="font-serif text-2xl sm:text-4xl font-bold tracking-tight text-foreground">
               {q ? (
                 <>
-                  Hasil Pencarian: <span className="text-primary">&ldquo;{q}&rdquo;</span>
+                  {t.search.header_result} <span className="text-primary">&ldquo;{q}&rdquo;</span>
                 </>
               ) : displaySubLabel ? (
                 <>
-                  Koleksi Kerajinan <span className="text-primary">{displaySubLabel}</span>
+                  {lang === "en" ? "Craft Collection" : "Koleksi Kerajinan"} <span className="text-primary">{displaySubLabel}</span>
                 </>
               ) : displayCatLabel ? (
                 <>
-                  Koleksi Kerajinan <span className="text-primary">{displayCatLabel}</span>
+                  {lang === "en" ? "Craft Collection" : "Koleksi Kerajinan"} <span className="text-primary">{displayCatLabel}</span>
                 </>
               ) : (
-                "Katalog Kerajinan Tangan Nusantara"
+                t.search.header_default
               )}
             </h1>
 
             {/* Dynamic Subtitle */}
             <p className="text-xs sm:text-sm text-muted-foreground font-medium max-w-2xl leading-relaxed">
               {products.length > 0 ? (
-                <>Menampilkan {products.length} karya seni kerajinan tangan otentik hasil buatan pengrajin terverifikasi Nusantara.</>
+                <>{t.search.showing_products_1}{products.length}{t.search.showing_products_2}</>
               ) : (
-                <>Jelajahi ragam karya seni handmade otentik dan rekomendasi kerajinan buatan tangan pilihan dari pengrajin terverifikasi Nusantara di bawah ini.</>
+                <>{t.search.showing_empty_subtitle}</>
               )}
             </p>
           </div>
@@ -366,19 +367,19 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   <div>
                     <h3 className="font-serif font-bold text-xl text-foreground">
                       {q ? (
-                        <>Belum Ada Produk untuk Kata Kunci &ldquo;{q}&rdquo;</>
+                        <>{t.search.empty_q} &ldquo;{q}&rdquo;</>
                       ) : displaySubLabel ? (
-                        <>Belum Ada Produk di Subkategori &ldquo;{displaySubLabel}&rdquo;</>
+                        <>{t.search.empty_subcat} &ldquo;{displaySubLabel}&rdquo;</>
                       ) : displayCatLabel ? (
-                        <>Belum Ada Produk di Kategori &ldquo;{displayCatLabel}&rdquo;</>
+                        <>{t.search.empty_cat} &ldquo;{displayCatLabel}&rdquo;</>
                       ) : (
-                        <>Produk Kerajinan Belum Tersedia</>
+                        <>{t.search.empty_title}</>
                       )}
                     </h3>
                     <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto mt-1.5 leading-relaxed">
                       {q
-                        ? `Pengrajin kami sedang mempersiapkan karya terbaru untuk kata kunci "${q}". Anda dapat mencoba kata kunci lain atau melihat koleksi rekomendasi kerajinan pilihan di bawah.`
-                        : "Pengrajin kami sedang mempersiapkan karya terbaru untuk kategori ini. Anda dapat mencoba kata kunci lain atau melihat koleksi rekomendasi kerajinan pilihan di bawah."}
+                        ? t.search.empty_desc_q.replace("{q}", q)
+                        : t.search.empty_desc_general}
                     </p>
                   </div>
 
@@ -399,7 +400,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     href="/search"
                     className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline pt-2"
                   >
-                    Lihat Semua Produk Kerajinan <ArrowRight className="h-3.5 w-3.5" />
+                    {t.search.see_all} <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
 
@@ -409,10 +410,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     <div>
                       <h3 className="font-serif font-bold text-lg text-foreground flex items-center gap-2">
                         <Sparkles className="h-5 w-5 text-amber-500" />
-                        Rekomendasi Produk Kerajinan Lainnya
+                        {t.search.recommendations_title}
                       </h3>
                       <p className="text-xs text-muted-foreground">
-                        Karya tangan populer favorit pembeli yang mungkin Anda sukai
+                        {t.search.recommendations_subtitle}
                       </p>
                     </div>
 

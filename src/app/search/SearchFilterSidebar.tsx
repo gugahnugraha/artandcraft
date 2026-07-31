@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Filter, RotateCcw, Check } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { translateCategory } from "@/lib/translateCategory";
 
 interface CategoryOption {
   id: string;
@@ -19,7 +20,7 @@ interface SearchFilterSidebarProps {
 export default function SearchFilterSidebar({ categories }: SearchFilterSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Read current query params
   const currentQuery = searchParams.get("q") || "";
@@ -139,9 +140,9 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
           </label>
           <div className="space-y-1.5">
             <button
-              onClick={() => applyFilter({ category: null })}
+              onClick={() => applyFilter({ category: null, subcategory: null })}
               className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm text-left transition-all ${
-                !currentCategory
+                (!currentCategory && !currentSubcategory)
                   ? "bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20 hover-lift"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
               }`}
@@ -162,7 +163,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
                         : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
                     }`}
                   >
-                    <span>{cat.name}</span>
+                    <span>{translateCategory(cat.name, language)}</span>
                     {isSelected && <Check className="h-4 w-4" />}
                   </button>
 
@@ -181,7 +182,7 @@ export default function SearchFilterSidebar({ categories }: SearchFilterSidebarP
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground font-medium"
                             }`}
                           >
-                            <span>{sub.name}</span>
+                            <span>{translateCategory(sub.name, language)}</span>
                             {isSubSelected && <Check className="h-3.5 w-3.5" />}
                           </button>
                         );

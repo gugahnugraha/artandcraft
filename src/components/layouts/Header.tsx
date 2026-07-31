@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/store/cart";
 import NotificationDropdown from "@/components/ui/NotificationDropdown";
+import { translateCategory } from "@/lib/translateCategory";
 
 export default function Header() {
   const router = useRouter();
@@ -285,7 +286,7 @@ export default function Header() {
               className="text-[13px] font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 py-1 px-3 rounded-full bg-primary/5 hover:bg-primary/10 border border-primary/20 shadow-xs cursor-pointer"
             >
               <LayoutGrid className="h-3.5 w-3.5" />
-              <span>Semua Kategori</span>
+              <span>{t.header.all_categories}</span>
               <ChevronDown className="h-3 w-3 transition-transform group-hover:rotate-180" />
             </button>
 
@@ -299,7 +300,7 @@ export default function Header() {
                       className="font-bold text-xs text-foreground group-hover/item:text-primary flex items-center justify-between transition-colors"
                       onClick={() => setActiveCategoryHover(null)}
                     >
-                      <span>{cat.name}</span>
+                      <span>{translateCategory(cat.name, language)}</span>
                       <span className="text-[10px] font-normal text-muted-foreground opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-1 transition-all duration-300">&rarr;</span>
                     </Link>
                     {cat.subcategories && cat.subcategories.length > 0 && (
@@ -311,7 +312,7 @@ export default function Header() {
                             className="block text-[11px] text-muted-foreground hover:text-primary truncate"
                             onClick={() => setActiveCategoryHover(null)}
                           >
-                            {sub.name}
+                            {translateCategory(sub.name, language)}
                           </Link>
                         ))}
                       </div>
@@ -324,7 +325,7 @@ export default function Header() {
                     className="text-xs font-bold text-primary hover:underline"
                     onClick={() => setActiveCategoryHover(null)}
                   >
-                    Jelajahi Seluruh Katalog Kategori &amp; Kerajinan Nusantara &rarr;
+                    {t.header.explore_catalog}
                   </Link>
                 </div>
               </div>
@@ -333,12 +334,12 @@ export default function Header() {
 
           {/* Aesthetic Key Product Type Links */}
           {[
-            { label: "Batik", href: "/search?category=batik-wastra" },
-            { label: "Kerajinan Kayu", href: "/search?category=kerajinan-kayu" },
-            { label: "Resin Art", href: "/search?category=seni-rupa-lukisan" },
-            { label: "Keramik", href: "/search?category=keramik-gerabah" },
-            { label: "Perhiasan", href: "/search?category=perhiasan-aksesori" },
-            { label: "Anyaman", href: "/search?category=anyaman-rotan" },
+            { label: translateCategory("Batik", language), href: "/search?category=batik-wastra" },
+            { label: translateCategory("Kerajinan Kayu", language), href: "/search?category=kerajinan-kayu" },
+            { label: translateCategory("Resin Art", language), href: "/search?category=seni-rupa-lukisan" },
+            { label: translateCategory("Keramik", language), href: "/search?category=keramik-gerabah" },
+            { label: translateCategory("Perhiasan", language), href: "/search?category=perhiasan-aksesori" },
+            { label: translateCategory("Anyaman", language), href: "/search?category=anyaman-rotan" },
           ].map(({ label, href }) => (
             <Link
               key={label}
