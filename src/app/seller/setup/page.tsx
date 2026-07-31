@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sellerSetupSchema, SellerSetupInput } from "@/features/auth/schemas";
 import { sellerSetup } from "@/features/auth/actions/seller-setup";
 import { Store, Link2, FileText, Image as ImageIcon, Loader2, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import ImageDropzone from "@/components/ui/ImageDropzone";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SellerSetupPage() {
@@ -24,6 +25,7 @@ export default function SellerSetupPage() {
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm<SellerSetupInput>({
     resolver: zodResolver(sellerSetupSchema),
@@ -247,49 +249,43 @@ export default function SellerSetupPage() {
               )}
             </div>
 
-            {/* Store Logo (Mock URL) */}
+            {/* Store Logo */}
             <div>
               <label htmlFor="storeLogo" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                 {t.seller_setup.store_logo}
               </label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <ImageIcon className="h-4.5 w-4.5 text-muted-foreground" />
-                </div>
-                <input
-                  id="storeLogo"
-                  type="text"
-                  placeholder="https://example.com/logo.jpg"
-                  className={`w-full rounded-lg border bg-background py-2.5 pl-10 pr-4 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
-                    errors.storeLogo ? "border-destructive" : "border-border"
-                  }`}
-                  {...register("storeLogo")}
-                />
-              </div>
+              <Controller
+                control={control}
+                name="storeLogo"
+                render={({ field }) => (
+                  <ImageDropzone
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    folder="stores/logos"
+                  />
+                )}
+              />
               {errors.storeLogo && (
                 <p className="mt-1 text-xs text-destructive">{errors.storeLogo.message}</p>
               )}
             </div>
 
-            {/* Store Banner (Mock URL) */}
+            {/* Store Banner */}
             <div>
               <label htmlFor="storeBanner" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
                 {t.seller_setup.store_banner}
               </label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <ImageIcon className="h-4.5 w-4.5 text-muted-foreground" />
-                </div>
-                <input
-                  id="storeBanner"
-                  type="text"
-                  placeholder="https://example.com/banner.jpg"
-                  className={`w-full rounded-lg border bg-background py-2.5 pl-10 pr-4 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all ${
-                    errors.storeBanner ? "border-destructive" : "border-border"
-                  }`}
-                  {...register("storeBanner")}
-                />
-              </div>
+              <Controller
+                control={control}
+                name="storeBanner"
+                render={({ field }) => (
+                  <ImageDropzone
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                    folder="stores/banners"
+                  />
+                )}
+              />
               {errors.storeBanner && (
                 <p className="mt-1 text-xs text-destructive">{errors.storeBanner.message}</p>
               )}

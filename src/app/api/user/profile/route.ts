@@ -5,6 +5,7 @@ import { z } from "zod";
 
 const ProfileSchema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter").max(100),
+  image: z.string().url("URL gambar tidak valid").optional().or(z.literal("")),
 });
 
 // PATCH /api/user/profile
@@ -23,8 +24,8 @@ export async function PATCH(req: Request) {
 
   const user = await prisma.user.update({
     where: { id: session.user.id },
-    data: { name: parsed.data.name },
-    select: { id: true, name: true, email: true },
+    data: { name: parsed.data.name, image: parsed.data.image },
+    select: { id: true, name: true, email: true, image: true },
   });
 
   return NextResponse.json({ user });

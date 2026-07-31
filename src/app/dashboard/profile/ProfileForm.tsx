@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { User, Lock, Camera, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -29,6 +29,39 @@ export default function ProfileForm({ user }: ProfileFormProps) {
   const [savingPassword, startSavePassword] = useTransition();
   const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [passwordMsg, setPasswordMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user.image);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAvatar(true);
+    setProfileMsg(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", "avatars");
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setAvatarUrl(data.url);
+      } else {
+        setProfileMsg({ type: "error", text: data.error || "Gagal mengunggah foto profil." });
+      }
+    } catch (err) {
+      setProfileMsg({ type: "error", text: "Terjadi kesalahan koneksi saat mengunggah foto." });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +70,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, image: avatarUrl }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -98,16 +131,28 @@ export default function ProfileForm({ user }: ProfileFormProps) {
           <div className="flex items-center gap-5">
             <div className="relative">
               <div className="h-20 w-20 rounded-full bg-primary/10 text-primary font-serif font-bold text-3xl flex items-center justify-center overflow-hidden border-4 border-background shadow-md">
-                {user.image ? (
+                {isUploadingAvatar ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={user.image} alt={user.name || "Avatar"} className="w-full h-full object-cover" />
+                  <img src={avatarUrl} alt={user.name || "Avatar"} className="w-full h-full object-cover" />
                 ) : (
                   name?.charAt(0)?.toUpperCase() || "U"
                 )}
               </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*" 
+                onChange={handleAvatarUpload} 
+                disabled={isUploadingAvatar}
+              />
               <button
                 type="button"
-                className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors disabled:opacity-50"
                 title={t.profile.change_photo}
               >
                 <Camera className="h-3.5 w-3.5" />
