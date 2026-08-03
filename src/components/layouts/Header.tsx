@@ -182,7 +182,7 @@ export default function Header() {
             ) : session ? (
               <div className="flex items-center gap-1 mx-1">
                 <NotificationDropdown />
-                <div className="relative">
+                <div className="relative hidden md:block">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 rounded-full p-2 text-foreground hover:bg-muted transition-colors"
@@ -253,7 +253,7 @@ export default function Header() {
             )}
 
             {/* Wishlist */}
-            <Link href="/dashboard/wishlist" className="rounded-full p-2 text-foreground hover:bg-muted transition-colors" title="Wishlist Saya">
+            <Link href="/dashboard/wishlist" className="hidden md:block rounded-full p-2 text-foreground hover:bg-muted transition-colors" title="Wishlist Saya">
               <Heart className="h-5 w-5" />
             </Link>
 
