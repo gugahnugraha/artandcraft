@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/store/cart";
 import NotificationDropdown from "@/components/ui/NotificationDropdown";
+import PromoPopup from "@/components/ui/PromoPopup";
 import { translateCategory } from "@/lib/translateCategory";
 
 export default function Header() {
@@ -94,11 +95,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full glass transition-all duration-300">
-      {announcement && (
-        <div style={{ backgroundColor: "var(--primary)" }} className="text-white py-2.5 px-4 text-center text-xs font-semibold tracking-wide animate-fade-in shadow-inner relative z-50">
-          {announcement}
-        </div>
-      )}
+      {announcement && <PromoPopup announcement={announcement} />}
       {session && !session.user.emailVerified && (
         <div className="bg-amber-500/10 border-b border-amber-500/20 py-2 px-4 text-center text-xs text-amber-800 dark:text-amber-300 font-medium">
           Email Anda ({session.user.email}) belum diverifikasi. Silakan cek kotak masuk Anda untuk melakukan verifikasi.
