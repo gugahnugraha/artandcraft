@@ -93,7 +93,8 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full glass transition-all duration-300">
+    <>
+      <header className="sticky top-0 z-[60] w-full glass transition-all duration-300">
       {announcement && <PromoPopup announcement={announcement} />}
       {session && !session.user.emailVerified && (
         <div className="bg-amber-500/10 border-b border-amber-500/20 py-2 px-4 text-center text-xs text-amber-800 dark:text-amber-300 font-medium">
@@ -145,7 +146,7 @@ export default function Header() {
           <div className="flex items-center gap-1 shrink-0">
 
             {/* Language Switcher */}
-            <div className="relative hidden md:block">
+            <div className="relative">
               <button 
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
                 className="flex items-center gap-1 rounded-full p-2 text-foreground hover:bg-muted transition-colors"
@@ -257,7 +258,7 @@ export default function Header() {
             </Link>
 
             {/* Cart */}
-            <Link href="/cart" className="rounded-full p-2 text-foreground hover:bg-muted transition-colors relative">
+            <Link href="/cart" className="hidden md:flex rounded-full p-2 text-foreground hover:bg-muted transition-colors relative">
               <ShoppingBag className="h-5 w-5" />
               {isMounted && totalCartItems > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground border-2 border-background">
@@ -348,6 +349,8 @@ export default function Header() {
         </nav>
       </div>
 
+      </header>
+
       {/* Mobile Categories Sidebar */}
       {mobileMenuOpen && (
         <>
@@ -355,7 +358,7 @@ export default function Header() {
             className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm md:hidden" 
             onClick={() => setMobileMenuOpen(false)} 
           />
-          <div className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-white dark:bg-slate-950 z-[101] shadow-2xl animate-in slide-in-from-left duration-300 md:hidden flex flex-col">
+          <div className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-white dark:bg-slate-950 z-[101] shadow-2xl animate-in slide-in-from-left duration-300 md:hidden flex flex-col overscroll-contain">
             <div className="p-4 border-b border-border flex items-center justify-between bg-white dark:bg-slate-950 shrink-0">
               <span className="font-serif text-xl text-primary font-bold">Kategori</span>
               <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
@@ -421,6 +424,6 @@ export default function Header() {
           </div>
         </>
       )}
-    </header>
+    </>
   );
 }
