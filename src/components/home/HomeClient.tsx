@@ -251,7 +251,7 @@ export default function HomeClient({
       <section 
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        className="relative w-full h-[450px] md:h-[540px] flex items-center justify-center overflow-hidden group"
+        className="hidden md:flex relative w-full h-[450px] md:h-[540px] items-center justify-center overflow-hidden group"
       >
         {/* Background Images with smooth opacity fade */}
         {heroSlides.map((s, index) => (

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard, Shield, X, Globe, ChevronDown, LayoutGrid } from "lucide-react";
+import { Search, ShoppingBag, Heart, User, Menu, Store, LogOut, LayoutDashboard, Shield, X, Globe, ChevronDown, LayoutGrid, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/store/cart";
@@ -18,7 +18,7 @@ export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { t, language, setLanguage } = useLanguage();
   const [isMounted, setIsMounted] = useState(false);
   const totalCartItems = useCart((state) => state.getTotalItems());
@@ -89,7 +89,6 @@ export default function Header() {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setMobileSearchOpen(false);
     }
   };
 
@@ -104,46 +103,46 @@ export default function Header() {
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         
         {/* TOP ROW: Logo, Search, Actions */}
-        <div className="flex h-16 md:h-16 items-center justify-between gap-4">
+        <div className="flex h-16 md:h-16 items-center justify-between gap-2 sm:gap-4 relative z-10">
 
-          {/* Logo */}
-          <div className="flex items-center gap-3 shrink-0">
-            <button className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted md:hidden transition-colors" aria-label="Menu">
-              <Menu className="h-5 w-5" />
-            </button>
-            <Link href="/" className="flex items-center gap-2 group">
-              <span className="font-serif text-2xl md:text-3xl text-primary tracking-tight">
-                Art <span className="italic font-normal">and</span> Craft
-              </span>
-            </Link>
-          </div>
+          {/* Hamburger Menu (Mobile & Desktop) */}
+          <button 
+            onClick={() => setMobileMenuOpen(true)}
+            className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted md:hidden transition-colors shrink-0" 
+            aria-label="Menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
 
-          {/* Search (Desktop) - Centered & Prominent with Smooth Expand/Contract Animation */}
-          <form onSubmit={handleSearch} className="hidden sm:flex flex-1 items-center justify-center mx-4">
-            <div className="relative w-full max-w-md focus-within:max-w-2xl transition-all duration-500 ease-in-out group">
+          {/* Logo (Desktop Only) */}
+          <Link href="/" className="hidden sm:flex items-center gap-2 group shrink-0">
+            <span className="font-serif text-2xl md:text-3xl text-primary tracking-tight">
+              Art <span className="italic font-normal">and</span> Craft
+            </span>
+          </Link>
+
+          {/* Search (Always visible, responsive) */}
+          <form onSubmit={handleSearch} className="flex flex-1 items-center justify-center mx-1 sm:mx-4">
+            <div className="relative w-full max-w-2xl transition-all duration-500 ease-in-out group">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t.header.search_placeholder}
-                className="w-full rounded-full border border-border/70 bg-background/50 backdrop-blur-sm py-2.5 pl-5 pr-12 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all duration-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] hover:border-primary/50"
+                className="w-full rounded-full border border-border/70 bg-background/50 backdrop-blur-sm py-2 sm:py-2.5 pl-4 sm:pl-5 pr-10 sm:pr-12 text-[13px] sm:text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:bg-background focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all duration-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] hover:border-primary/50"
               />
               <button 
                 type="submit" 
-                className="absolute right-1 top-1 bottom-1 w-11 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all active:scale-95 shadow-sm"
+                className="absolute right-1 top-1 bottom-1 w-9 sm:w-11 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all active:scale-95 shadow-sm"
                 aria-label="Search"
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
             </div>
           </form>
 
           {/* Actions */}
           <div className="flex items-center gap-1 shrink-0">
-            {/* Mobile search toggle */}
-            <button onClick={() => setMobileSearchOpen(!mobileSearchOpen)} className="sm:hidden rounded-full p-2 text-foreground hover:bg-muted transition-colors">
-              <Search className="h-5 w-5" />
-            </button>
 
             {/* Language Switcher */}
             <div className="relative hidden md:block">
@@ -349,26 +348,51 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Mobile Search Expandable */}
-      {mobileSearchOpen && (
-        <div className="sm:hidden border-t border-border bg-background px-4 py-3 shadow-inner">
-          <form onSubmit={handleSearch} className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t.header.search_placeholder}
-                autoFocus
-                className="w-full rounded-full border-2 border-foreground bg-background py-2.5 pl-9 pr-4 text-sm text-foreground focus:border-primary focus:outline-none transition-all"
-              />
+      {/* Mobile Categories Sidebar */}
+      {mobileMenuOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm md:hidden" 
+            onClick={() => setMobileMenuOpen(false)} 
+          />
+          <div className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-background z-[101] shadow-2xl animate-in slide-in-from-left duration-300 md:hidden flex flex-col">
+            <div className="p-4 border-b border-border flex items-center justify-between bg-background/95 backdrop-blur-sm shrink-0">
+              <span className="font-serif text-xl text-primary font-bold">Kategori</span>
+              <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <button type="button" onClick={() => setMobileSearchOpen(false)} className="rounded-full p-2 text-muted-foreground hover:bg-muted">
-              <X className="h-5 w-5" />
-            </button>
-          </form>
-        </div>
+            
+            <div className="p-4 overflow-y-auto flex-1 space-y-2 pb-24">
+              <Link 
+                href="/search"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                  <LayoutGrid className="h-5 w-5" />
+                </div>
+                <span className="font-semibold text-sm">Semua Kategori</span>
+              </Link>
+              
+              <div className="pt-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground px-3">
+                Kategori Pilihan
+              </div>
+              
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/search?category=${cat.slug}`}
+                  className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors group"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="text-sm font-medium">{translateCategory(cat.name, language)}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-1" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </header>
   );
