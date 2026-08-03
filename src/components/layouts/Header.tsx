@@ -352,11 +352,11 @@ export default function Header() {
       {mobileMenuOpen && (
         <>
           <div 
-            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm md:hidden" 
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm md:hidden" 
             onClick={() => setMobileMenuOpen(false)} 
           />
-          <div className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-background z-[101] shadow-2xl animate-in slide-in-from-left duration-300 md:hidden flex flex-col">
-            <div className="p-4 border-b border-border flex items-center justify-between bg-background/95 backdrop-blur-sm shrink-0">
+          <div className="fixed top-0 left-0 bottom-0 w-[85%] max-w-sm bg-white dark:bg-slate-950 z-[101] shadow-2xl animate-in slide-in-from-left duration-300 md:hidden flex flex-col">
+            <div className="p-4 border-b border-border flex items-center justify-between bg-white dark:bg-slate-950 shrink-0">
               <span className="font-serif text-xl text-primary font-bold">Kategori</span>
               <button onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
                 <X className="h-5 w-5" />
@@ -379,17 +379,44 @@ export default function Header() {
                 Kategori Pilihan
               </div>
               
-              {categories.map((cat) => (
+              {/* Aesthetic Key Product Type Links (Fallback) */}
+              {[
+                { label: translateCategory("Batik", language), href: "/search?category=batik-wastra" },
+                { label: translateCategory("Kerajinan Kayu", language), href: "/search?category=kerajinan-kayu" },
+                { label: translateCategory("Resin Art", language), href: "/search?category=seni-rupa-lukisan" },
+                { label: translateCategory("Keramik", language), href: "/search?category=keramik-gerabah" },
+                { label: translateCategory("Perhiasan", language), href: "/search?category=perhiasan-aksesori" },
+                { label: translateCategory("Anyaman", language), href: "/search?category=anyaman-rotan" },
+              ].map(({ label, href }) => (
                 <Link
-                  key={cat.id}
-                  href={`/search?category=${cat.slug}`}
+                  key={label}
+                  href={href}
                   className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors group"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <span className="text-sm font-medium">{translateCategory(cat.name, language)}</span>
+                  <span className="text-sm font-medium">{label}</span>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-1" />
                 </Link>
               ))}
+
+              {categories.length > 0 && (
+                <>
+                  <div className="pt-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground px-3">
+                    Katalog Lengkap
+                  </div>
+                  {categories.map((cat) => (
+                    <Link
+                      key={cat.id}
+                      href={`/search?category=${cat.slug}`}
+                      className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors group"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <span className="text-sm font-medium">{translateCategory(cat.name, language)}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </>
